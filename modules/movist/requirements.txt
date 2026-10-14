@@ -1,0 +1,10 @@
+anthropic
+requests
+python-dotenv
+feedparser
+trafilatura
+lxml
+pillow
+imageio-ffmpeg
+edge-tts
+higgsfield-client
