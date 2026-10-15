@@ -2,11 +2,14 @@
   "name": "archivekr",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=24" },
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "build": "npm --prefix modules/opportunity-radar run build",
     "validate": "npm --prefix modules/opportunity-radar run validate && node --test modules/editorial-desk/*.test.mjs modules/regional-news/*.test.mjs modules/automation/*.test.mjs tests/*.test.mjs",
     "dev": "node scripts/start.mjs",
-    "setup": "bash scripts/setup.sh"
+    "setup": "bash scripts/setup.sh",
+    "build:preview": "node scripts/build-preview.mjs"
   }
 }

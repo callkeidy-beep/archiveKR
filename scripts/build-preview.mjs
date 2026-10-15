@@ -1,0 +1,14 @@
+import { mkdir, readFile, writeFile, copyFile, rm } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+const root=fileURLToPath(new URL('../',import.meta.url));
+const out=path.join(root,'site-dist');
+await rm(out,{recursive:true,force:true});
+await mkdir(out,{recursive:true});
+let html=await readFile(path.join(root,'web/index.html'),'utf8');
+html=html.replace('href="/style.css"','href="./style.css"').replace('data-src="/movist/"','data-src="./studio.html"').replace('<script type="module" src="/app.js"></script>','<script src="./demo-api.js"></script><script type="module" src="./app.js"></script>').replace('로컬 개발 · 직원용','공개 체험 · 실제 게시 없음');
+await writeFile(path.join(out,'index.html'),html);
+for(const file of ['app.js','style.css','studio-bridge.js'])await copyFile(path.join(root,'web',file),path.join(out,file));
+for(const file of ['demo-api.js','studio.html','README.md'])await copyFile(path.join(root,'site-preview',file),path.join(out,file));
+await writeFile(path.join(out,'.nojekyll'),'');
+console.log('Public demo built in site-dist/ (no server data or credentials).');

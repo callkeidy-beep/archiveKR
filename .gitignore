@@ -18,3 +18,4 @@ modules/movist/.local/
 modules/movist/config.env
 modules/movist/data/
 modules/movist/**/*.pyc
+site-dist/
