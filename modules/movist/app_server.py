@@ -70,11 +70,7 @@ def load_store():
 
 
 def allowed_article_url(url):
-    try:
-        parsed = urlparse(url)
-        return parsed.scheme == "https" and parsed.hostname in ("movist.com", "www.movist.com") and parsed.port in (None, 443) and not parsed.username and not parsed.password
-    except (ValueError, TypeError):
-        return False
+    return core.allowed_movist_url(url)
 
 
 def safe(s):
@@ -124,6 +120,14 @@ class H(BaseHTTPRequestHandler):
                     return self.send(200, load_store())
             except (ValueError, OSError):
                 return self.send(409, {"error": "보관함을 읽을 수 없습니다. 기존 파일을 보존했습니다."})
+        if u.path == "/api/latest":
+            try:
+                return self.send(200, core.latest_articles())
+            except core.requests.HTTPError as exc:
+                status = exc.response.status_code if exc.response is not None else None
+                return self.send(502, {"error": "MOVIST 최신 기사 목록을 가져오지 못했습니다.", "upstreamStatus": status, "items": []})
+            except Exception:
+                return self.send(502, {"error": "MOVIST 최신 기사 목록에 연결하지 못했습니다.", "items": []})
         if u.path == "/api/fetch":
             return self.fetch_article(parse_qs(u.query).get("url", [""])[0])
         if u.path.startswith("/api/img/"):
@@ -147,7 +151,7 @@ class H(BaseHTTPRequestHandler):
         n = core.download_images(art.get("images") or [], folder, url) if art.get("images") else 0
         imgs = [f"/api/movist/img/{key}/{p.name}" for p in sorted(folder.glob("*.jpg"))][:n]
         return self.send(200, {"title": art["title"], "author": art["author"], "credit": art["credit"],
-                               "body": art["body"], "images": imgs})
+                               "body": art["body"], "images": imgs, "url": url, "publishedAt": art.get("publishedAt", "")})
 
     # ---------- POST ----------
     def do_POST(self):
@@ -172,7 +176,20 @@ class H(BaseHTTPRequestHandler):
                 from io import BytesIO
                 data = self.json_body()
                 out = BytesIO()
-                render_card(data).save(out, format="PNG")
+                background = None
+                source_image = data.get("sourceImage")
+                if source_image is not None:
+                    if not isinstance(source_image, str) or not re.fullmatch(r"/api/movist/img/[a-f0-9]{12}/[A-Za-z0-9_-]+\.(?:jpg|jpeg|png|webp)", source_image):
+                        raise ValueError("invalid_source_image")
+                    image_path = (TMP / source_image.removeprefix("/api/movist/img/")).resolve()
+                    if TMP.resolve() not in image_path.parents or not image_path.is_file():
+                        raise ValueError("invalid_source_image")
+                    from PIL import Image
+                    with Image.open(image_path) as photo:
+                        if photo.width * photo.height > 40_000_000:
+                            raise ValueError("source_image_too_large")
+                        background = photo.convert("RGB")
+                render_card(data, background=background).save(out, format="PNG")
                 return self.send(200, out.getvalue(), "image/png")
             except (ValueError, TypeError) as exc:
                 return self.send(400, {"error": "카드 요청 형식이 올바르지 않습니다."})

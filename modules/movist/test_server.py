@@ -22,6 +22,18 @@ class ServerTests(unittest.TestCase):
     def test_card_dimensions(self):
         code,raw=self.post('/cards',{'headline':'영화의 다음 장면'});self.assertEqual(code,200)
         self.assertEqual(Image.open(io.BytesIO(raw)).size,(1080,1440))
+    def test_card_local_photo_and_invalid_paths(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);folder=root/'abcdef012345';folder.mkdir()
+            Image.new('RGB',(600,800),'#e04020').save(folder/'01.jpg')
+            with patch.object(app,'TMP',root):
+                code,raw=self.post('/cards',{'headline':'사진 카드','sourceImage':'/api/movist/img/abcdef012345/01.jpg'})
+                self.assertEqual(code,200)
+                image=Image.open(io.BytesIO(raw));self.assertEqual(image.size,(1080,1440))
+                pixel=image.getpixel((10,10));self.assertGreater(pixel[0],pixel[1]*2)
+                for source in ['/api/movist/img/abcdef012345/../secret.jpg','/etc/passwd','https://www.movist.com/a.jpg','/api/movist/img/abcdef012345/missing.jpg']:
+                    self.assertEqual(self.post('/cards',{'sourceImage':source})[0],400)
+
     def test_malformed_and_invalid_store(self):
         for data in [b'{',[],{'key':'ANTHROPIC_API_KEY','value':'must-not-persist'},{'key':'movist_rules','value':{}}]:
             self.assertEqual(self.post('/store',data)[0],400)

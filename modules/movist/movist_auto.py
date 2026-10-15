@@ -78,19 +78,100 @@ def key_of(s):
     return hashlib.sha1(s.encode("utf-8")).hexdigest()[:16]
 
 
+MOVIST_HOSTS = {"movist.com", "www.movist.com", "m.movist.com"}
+LATEST_URL = "https://www.movist.com/"
+
+
+def allowed_movist_url(url):
+    from urllib.parse import urlparse
+    try:
+        p = urlparse(url)
+        return p.scheme == "https" and p.hostname in MOVIST_HOSTS and p.port in (None, 443) and not p.username and not p.password
+    except (ValueError, TypeError):
+        return False
+
+
+def bounded_get(url, limit=3 * 1024 * 1024, headers=None):
+    """Verified HTTPS, fixed destinations, no redirects, bounded response body."""
+    if not allowed_movist_url(url):
+        raise ValueError("허용된 MOVIST HTTPS 주소만 사용할 수 있습니다")
+    with requests.get(url, headers=headers or UA, timeout=(8, 20), allow_redirects=False, stream=True) as resp:
+        resp.raise_for_status()
+        if resp.status_code != 200:
+            raise ValueError("upstream_response")
+        content = bytearray()
+        for chunk in resp.iter_content(65536):
+            content.extend(chunk)
+            if len(content) > limit:
+                raise ValueError("upstream_size_limit")
+        resp._content = bytes(content)
+        if not resp.encoding or resp.encoding.lower() in ("iso-8859-1", "latin-1", "ascii"):
+            resp.encoding = resp.apparent_encoding or "utf-8"
+        return resp
+
+
+def parse_latest(html, page_url=LATEST_URL):
+    """Only official editorial article links, excluding community posts and ads."""
+    from urllib.parse import urljoin, urlparse, parse_qs, urlencode, urlunparse
+    import lxml.html
+    doc = lxml.html.fromstring(html)
+    items = {}
+    for a in doc.xpath('//a[@href]'):
+        p = urlparse(urljoin(page_url, a.get("href")))
+        if p.scheme == "http" and p.hostname in MOVIST_HOSTS:
+            p = p._replace(scheme="https")
+        if not allowed_movist_url(p.geturl()) or p.path.lower() not in ("/movist3d/view.asp", "/star3d/view.asp"):
+            continue
+        q = parse_qs(p.query)
+        article_id = q.get("id", [""])[0]
+        article_type = q.get("type", [""])[0]
+        if not re.fullmatch(r"atc[0-9]{8,20}", article_id) or not article_type.isdigit():
+            continue
+        url = urlunparse(("https", "www.movist.com", p.path.lower(), "", urlencode({"type": article_type, "id": article_id}), ""))
+        title = " ".join(a.text_content().split())[:500]
+        if url not in items or (title and not items[url]["title"]):
+            items[url] = {"url": url, "title": title}
+    return list(items.values())[:40]
+
+
+def latest_articles():
+    response = bounded_get(LATEST_URL)
+    return {"items": parse_latest(response.text), "source": LATEST_URL, "upstreamStatus": response.status_code,
+            "checkedAt": datetime.now().astimezone().isoformat()}
+
+
 # ---------- 기사 가져오기 ----------
 def fetch_article(url):
     """기사 URL에서 제목과 본문을 뽑는다."""
     import trafilatura
-    from urllib.parse import urlparse
-    parsed = urlparse(url)
-    if parsed.scheme != "https" or parsed.hostname not in ("movist.com", "www.movist.com") or parsed.port not in (None, 443) or parsed.username:
-        raise ValueError("허용된 MOVIST HTTPS 기사 주소만 사용할 수 있습니다")
-    resp = requests.get(url, headers=UA, timeout=20, allow_redirects=False)
-    if not resp.encoding or resp.encoding.lower() in ("iso-8859-1", "latin-1", "ascii"):
-        resp.encoding = resp.apparent_encoding or "utf-8"
-    resp.raise_for_status()
+    resp = bounded_get(url)
     html = resp.text
+    # Current official pages load the article via their public browser API.
+    # Never treat the surrounding navigation as the article when that API fails.
+    if "/API/article/get_MOVIST_view.php" in html:
+        from urllib.parse import parse_qs, urlparse, urlencode
+        from html import unescape
+        article_id = parse_qs(urlparse(url).query).get("id", [""])[0]
+        public_key = re.search(r"ajaxData\s*=\s*['\"]c=['\"]\s*\+\s*id\s*\+\s*['\"]&apikey=([^'\"]+)", html)
+        if not public_key or not re.fullmatch(r"atc[0-9]{8,20}", article_id):
+            raise ValueError("article_api_unavailable")
+        api_url = "https://m.movist.com/API/article/get_MOVIST_view.php?" + urlencode({"c": article_id, "apikey": public_key.group(1)})
+        payload = bounded_get(api_url).json()
+        records = payload.get("article") if isinstance(payload, dict) else None
+        if not records or not isinstance(records[0], dict):
+            raise ValueError("article_missing")
+        article = records[0]
+        html = unescape(str(article.get("contents") or ""))
+        import lxml.html
+        document = lxml.html.fromstring(html or "<p></p>")
+        for node in document.xpath("//script|//style"):
+            node.drop_tree()
+        body = "\n".join(line.strip() for line in document.text_content().splitlines() if line.strip())
+        if not body.strip():
+            raise ValueError("article_body_missing")
+        return {"title": unescape(str(article.get("tit") or "")), "author": str(article.get("writer") or ""),
+                "url": url, "publishedAt": str(article.get("regidate") or ""), "credit": "", "body": body.strip(),
+                "images": find_images(html, url)}
     body = trafilatura.extract(html, include_comments=False, include_tables=False) or ""
     meta = trafilatura.extract_metadata(html)
     title = (meta.title if meta and meta.title else "").strip()
@@ -135,12 +216,10 @@ def download_images(urls, folder, referer=""):
     folder.mkdir(parents=True, exist_ok=True)
     kept, sigs = 0, set()
     for u in urls:
-        from urllib.parse import urlparse
-        parsed = urlparse(u)
-        if parsed.scheme != "https" or parsed.hostname not in ("movist.com", "www.movist.com") or parsed.port not in (None, 443) or parsed.username:
+        if not allowed_movist_url(u):
             continue
         try:
-            r = requests.get(u, headers={**UA, "Referer": referer}, timeout=20, allow_redirects=False)
+            r = bounded_get(u, limit=12 * 1024 * 1024, headers={**UA, "Referer": referer})
             if not r.ok or len(r.content) < 15000:
                 continue
             sig = hashlib.sha1(r.content).hexdigest()

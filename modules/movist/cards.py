@@ -1,14 +1,24 @@
 """Offline PNG renderer following the uploaded MOVIST design workbook."""
 from pathlib import Path
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 BASE=Path(__file__).resolve().parent
 
-def render_card(data):
+def render_card(data, background=None):
     if not isinstance(data,dict):raise ValueError('JSON 객체가 필요합니다')
     title=str(data.get('headline','영화의 다음 장면'))[:200]
     body=str(data.get('body',''))[:1200]
     cover=data.get('cover',True)
-    im=Image.new('RGB',(1080,1440),'#20252e');d=ImageDraw.Draw(im)
+    im=Image.new('RGB',(1080,1440),'#20252e')
+    if background is not None:
+        im=ImageOps.fit(background.convert('RGB'),(1080,1440),method=Image.Resampling.LANCZOS)
+        # Keep the photo visible above, and ensure white headlines remain legible below.
+        shade=Image.new('RGBA',im.size,(0,0,0,0))
+        gradient=ImageDraw.Draw(shade)
+        for row in range(im.height):
+            alpha=int(55+175*(row/(im.height-1))**1.5)
+            gradient.line((0,row,im.width,row),fill=(0,0,0,alpha))
+        im=Image.alpha_composite(im.convert('RGBA'),shade).convert('RGB')
+    d=ImageDraw.Draw(im)
     def font(size):return ImageFont.truetype(str(BASE/'fonts/body.ttf'),size)
     label=str(data.get('label','MOVIST'))[:50]
     d.text((540,60),label,font=font(26),fill='#dddddd',anchor='mt')
