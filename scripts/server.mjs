@@ -54,7 +54,8 @@ export async function route(request) {
   // This is a loopback-only internal development desk. Block cross-site writes.
   if (mutation && request.headers.get('origin') && !allowedOrigins.has(request.headers.get('origin'))) return json({ ok: false, error: '허용되지 않은 요청 출처입니다.' }, 403);
   if (request.headers.get('sec-fetch-site') === 'cross-site') return json({ ok: false, error: '교차 사이트 요청은 허용하지 않습니다.' }, 403);
-  if (url.pathname === '/api/health') return json({ ok: true, name: 'archiveKR', modules: ['desk', 'movist', 'automation'], suspendedModules: ['radar', 'news'], storage: 'local-file' });
+  if (mutation && /^\/api\/automation\/jobs\/[^/]+\/decision$/.test(url.pathname) && !allowedOrigins.has(request.headers.get('origin'))) return json({ ok: false, error: '최종 결정은 이 앱의 사용자 승인함에서 진행하세요.' }, 403);
+  if (url.pathname === '/api/health') return json({ ok: true, name: 'archiveKR', modules: ['desk', 'movist', 'automation'], suspendedModules: ['radar', 'news'], storage: 'local-file', approvalRequired: true });
   if (url.pathname === '/api/automation' || url.pathname.startsWith('/api/automation/')) {
     const response = await automation.handle(request);
     if (mutation && response.ok) runAutomation();
