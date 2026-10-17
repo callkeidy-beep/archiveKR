@@ -74,7 +74,7 @@ def render_card(data, background=None):
     for line in headlines: text(60,y,line,head,spacing);y+=head.size*1.3
     y+=24
     for line in bodylines: text(60,y,line,body);y+=body.size*1.55
-    label=str(data.get('label','MOVIST'))[:50];lf=font(26)
+    label=str(data.get('label','archiveKD'))[:50];lf=font(26)
     text((width-extent(label,lf,3))/2,60,label,lf,3,fill='#e0e0e0')
     credit=str(data.get('credit',''))[:100]
     if credit and background is not None:

@@ -122,7 +122,7 @@ def make_overlay(path, subtitle, credit, accent, is_first, is_last, title=""):
     for y in range(900, H):
         d.line([(0, y), (W, y)], fill=(0, 0, 0, int(170 * (y - 900) / (H - 900))))
     # 로고 (쇼츠 상단 UI 아래)
-    d.text((72, 150), "MOVIST", font=load_font("head", 60), fill="white")
+    d.text((72, 150), "archiveKD", font=load_font("head", 60), fill="white")
     # 첫 컷: 영상 제목 띠
     if is_first and title:
         ft = load_font("body", 44)
@@ -144,7 +144,7 @@ def make_overlay(path, subtitle, credit, accent, is_first, is_last, title=""):
     d.rectangle([(W / 2 - 40, y0 - 34), (W / 2 + 40, y0 - 24)], fill=accent)
     if is_last:
         ft2 = load_font("body", 40)
-        msg = "전문은 무비스트에서"
+        msg = "전문은 원문 링크에서"
         d.text(((W - d.textlength(msg, font=ft2)) / 2, y0 + len(lines) * lh + 30), msg, font=ft2, fill="white")
     if credit:
         d.text((72, 1560), "사진 " + credit, font=load_font("body", 28, bold=False), fill=(255, 255, 255, 190))
@@ -309,7 +309,7 @@ def make_shorts(folder, result, article, cfg):
              "-map", "0:v", "-map", "[a]", "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-shortest", str(final)])
     (folder / "쇼츠_업로드정보.txt").write_text(
         f"제목: {sh.get('title','')}\n\n설명:\n{sh.get('narration','')}\n\n{article.get('url','')}\n\n"
-        f"#무비스트 #Shorts\n\n※ AI 생성 클립 사용: {'예 (' + str(hf_used) + '컷)' if hf_used else '아니오'}\n"
+        f"#archiveKD #Shorts\n\n※ AI 생성 클립 사용: {'예 (' + str(hf_used) + '컷)' if hf_used else '아니오'}\n"
         f"   AI 클립을 썼다면 유튜브 업로드 시 '변경되거나 합성된 콘텐츠' 표시를 켜 주세요.\n",
         encoding="utf-8")
     log(f"완성: {final.name}")

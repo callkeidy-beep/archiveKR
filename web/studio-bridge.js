@@ -3,7 +3,7 @@
   let deskArticleId = null;
   const status = document.createElement('p');
   status.style.cssText = 'padding:12px 18px;background:#eaf0e8;color:#18302e;font:13px system-ui';
-  status.textContent = 'archiveKR 연결: 원문을 불러오거나 채널 변환을 시작하면 데스크와 자동 제작 대기열에 이어집니다.';
+  status.textContent = 'archiveKD 연결: 원문을 불러오거나 채널 변환을 시작하면 데스크와 자동 제작 대기열에 이어집니다.';
   document.body.prepend(status);
   const send = data => parent.postMessage(data, location.origin);
   const originalFetch = window.fetch.bind(window);
@@ -31,7 +31,7 @@
     for (const [id,value] of Object.entries({ title:article.title,body:article.body,url:article.sourceUrl||'',author:article.sourceCredit||'',credit:article.sourceCredit||'','offline-headline':article.title })) { const input=document.getElementById(id); if(input)input.value=value; }
     const parts=article.body.split(/\n+/).map(v=>v.trim()).filter(Boolean).slice(0,4);
     result = {
-      instagram:{cards:[{no:1,headline:article.title,body:'',photo_hint:'',photo:files.length?0:null},...parts.map((body,i)=>({no:i+2,headline:`원문 핵심 ${i+1}`,body:body.slice(0,260),photo_hint:'',photo:files.length?Math.min(i,files.length-1):null}))],caption:e.data.artifacts?.instagram||article.title,hashtags:['#archiveKR','#영화뉴스']},
+      instagram:{cards:[{no:1,headline:article.title,body:'',photo_hint:'',photo:files.length?0:null},...parts.map((body,i)=>({no:i+2,headline:`원문 핵심 ${i+1}`,body:body.slice(0,260),photo_hint:'',photo:files.length?Math.min(i,files.length-1):null}))],caption:e.data.artifacts?.instagram||article.title,hashtags:['#archiveKD','#콘텐츠뉴스']},
       threads:{text:e.data.artifacts?.threads||article.title},
       kakao:{text:e.data.artifacts?.kakao||article.title,question:''},
     };
@@ -46,7 +46,7 @@
     try {
       const sourceUrl=document.getElementById('url').value.trim();
       if(!deskArticleId){const r=await originalFetch('/api/desk/articles');const data=await r.json();const existing=data.items?.find(a=>sourceUrl?a.sourceUrl===sourceUrl:a.title===title);deskArticleId=existing?.id||null;}
-      const r=await originalFetch('/api/desk/articles'+(deskArticleId?'/'+deskArticleId:''),{method:deskArticleId?'PATCH':'POST',headers:{'content-type':'application/json'},body:JSON.stringify({title,body,sourceUrl,organization:'MOVIST'})});
+      const r=await originalFetch('/api/desk/articles'+(deskArticleId?'/'+deskArticleId:''),{method:deskArticleId?'PATCH':'POST',headers:{'content-type':'application/json'},body:JSON.stringify({title,body,sourceUrl,organization:'콘텐츠'})});
       const data=await r.json();if(!r.ok)throw new Error();deskArticleId=data.item.id;
       status.textContent='이 원고를 편집 데스크와 자동 제작에 등록했습니다. AI 편집 기능의 실행 결과와 자동 제작 상태는 별도로 확인할 수 있습니다.';
       send({type:'archivekr:studio-registered',articleId:deskArticleId});

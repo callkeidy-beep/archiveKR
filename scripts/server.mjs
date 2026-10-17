@@ -21,12 +21,12 @@ async function movieJson(path, options = {}) {
   const signal = options.signal ? AbortSignal.any([options.signal, AbortSignal.timeout(60000)]) : AbortSignal.timeout(60000);
   const r = await fetch(movieOrigin + '/api/movist/' + path, { ...options, signal });
   const data = await r.json();
-  if (!r.ok) throw new Error('MOVIST 수집 서버에서 기사 본문을 확인하지 못했습니다. 연결 상태를 확인하세요.');
+  if (!r.ok) throw new Error('콘텐츠 수집 서버에서 기사 본문을 확인하지 못했습니다. 연결 상태를 확인하세요.');
   return data;
 }
 async function renderMovieCard(data, { signal } = {}) {
   const r = await fetch(movieOrigin + '/api/movist/cards', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(data), signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(30000)]) : AbortSignal.timeout(30000) });
-  if (!r.ok) throw new Error('영화 제작실에서 카드 이미지를 만들지 못했습니다.');
+  if (!r.ok) throw new Error('카드뉴스 제작실에서 카드 이미지를 만들지 못했습니다.');
   return r.arrayBuffer();
 }
 const automation = createAutomation(context, {
@@ -52,7 +52,7 @@ const automation = createAutomation(context, {
       cards.push(await renderMovieCard({
         headline,
         body: index === 0 ? '' : (paragraphs[index - 1] || data.body || '').slice(0, 220),
-        label: 'MOVIST', tag: data.tag || '영화 | 뉴스', cover: index === 0,
+        label: 'archiveKD', tag: data.tag || '콘텐츠 | 뉴스', cover: index === 0,
         sourceImage: photos[index], credit: data.sourceCredit || '사진 출처·사용 권한 확인 필요',
         index, total: count,
       }, options));
@@ -81,7 +81,7 @@ export async function route(request) {
   if (mutation && request.headers.get('origin') && !allowedOrigins.has(request.headers.get('origin'))) return json({ ok: false, error: '허용되지 않은 요청 출처입니다.' }, 403);
   if (request.headers.get('sec-fetch-site') === 'cross-site') return json({ ok: false, error: '교차 사이트 요청은 허용하지 않습니다.' }, 403);
   if (mutation && /^\/api\/automation\/jobs\/[^/]+\/decision$/.test(url.pathname) && !allowedOrigins.has(request.headers.get('origin'))) return json({ ok: false, error: '최종 결정은 이 앱의 사용자 승인함에서 진행하세요.' }, 403);
-  if (url.pathname === '/api/health') return json({ ok: true, name: 'archiveKR', modules: ['desk', 'movist', 'automation'], suspendedModules: ['radar', 'news'], storage: 'local-file', approvalRequired: true });
+  if (url.pathname === '/api/health') return json({ ok: true, name: 'archiveKD', modules: ['desk', 'movist', 'automation'], suspendedModules: ['radar', 'news'], storage: 'local-file', approvalRequired: true });
   if (url.pathname === '/api/automation' || url.pathname.startsWith('/api/automation/')) {
     const response = await automation.handle(request);
     if (mutation && response.ok) runAutomation();
@@ -108,7 +108,7 @@ export async function route(request) {
       }
       if (response.ok && ['/movist','/movist/'].includes(url.pathname)) body = Buffer.from(body).toString('utf8').replace('</body>', '<script src="/studio-bridge.js"></script></body>');
       return new Response(body, { status: response.status, headers: outHeaders });
-    } catch { return json({ ok: false, error: '영화 제작실 서버를 시작하세요. README의 실행 명령을 확인하세요.' }, 503); }
+    } catch { return json({ ok: false, error: '카드뉴스 제작실 서버를 시작하세요. README의 실행 명령을 확인하세요.' }, 503); }
   }
   if (url.pathname.startsWith('/api/desk/')) {
     const response = await handleDesk(request, context);
@@ -157,8 +157,8 @@ const server = createServer(async (req, res) => {
     else res.end();
   }
 });
-server.on('error', () => { console.error('archiveKR startup failed: check port and file permissions.'); process.exitCode = 1; });
-server.listen(port, '127.0.0.1', () => console.log(`archiveKR listening on port ${port}`));
+server.on('error', () => { console.error('archiveKD startup failed: check port and file permissions.'); process.exitCode = 1; });
+server.listen(port, '127.0.0.1', () => console.log(`archiveKD listening on port ${port}`));
 function shutdown() { if (automationTimer) clearInterval(automationTimer); automation.stop?.(); server.close(); }
 process.on('SIGTERM', shutdown);
 process.on('SIGINT', shutdown);

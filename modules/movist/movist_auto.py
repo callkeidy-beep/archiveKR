@@ -1,5 +1,5 @@
 """
-무비스트 기사 자동 변환기 (로컬 실행용)
+콘텐츠 기사 자동 변환기 (로컬 실행용)
 
 하는 일
   1. 새 기사를 찾는다 (RSS 주소, 또는 inbox 폴더에 넣은 파일)
@@ -94,7 +94,7 @@ def allowed_movist_url(url):
 def bounded_get(url, limit=3 * 1024 * 1024, headers=None):
     """Verified HTTPS, fixed destinations, no redirects, bounded response body."""
     if not allowed_movist_url(url):
-        raise ValueError("허용된 MOVIST HTTPS 주소만 사용할 수 있습니다")
+        raise ValueError("설정된 수집 출처의 HTTPS 주소만 사용할 수 있습니다")
     with requests.get(url, headers=headers or UA, timeout=(8, 20), allow_redirects=False, stream=True) as resp:
         resp.raise_for_status()
         if resp.status_code != 200:
@@ -293,14 +293,13 @@ def load_item(kind, ref):
 
 
 # ---------- Claude 호출 ----------
-SYSTEM = """당신은 영화·인물 전문 매체 '무비스트(MOVIST)'의 디지털 배포 에디터다.
-무비스트는 MOVE+IST, '세상을 움직이는 힘과 사람'을 다루는 매체다.
+SYSTEM = """당신은 archiveKD의 콘텐츠 디지털 배포 에디터다.
 
 [절대 규칙]
 1. 원문 기사에 없는 사실, 수치, 발언을 만들지 않는다.
 2. 따옴표 안 인물 발언은 원문 그대로 쓰거나, 줄일 때만 앞뒤를 자른다. 단어를 바꾸지 않는다.
 3. 스포일러(결말, 반전)는 쓰지 않는다.
-4. 매체명은 '무비스트'로 표기한다.
+4. 제작 브랜드는 'archiveKD'로 표기하고 원문 출처는 별도로 유지한다.
 5. 과장 표현(충격, 경악, 소름, 역대급)을 쓰지 않는다.
 6. 이모지는 채널 규격에서 허용한 경우에만 쓴다.
 
@@ -310,7 +309,7 @@ SYSTEM = """당신은 영화·인물 전문 매체 '무비스트(MOVIST)'의 디
 CHANNELS = """[채널 규격]
 A. telegram: title(이모지 1개 허용, 30자 이내), lines 3개(각 50자 이내, 1개는 인물 발언 인용).
 B. kakao: text(대화체 2~3문장, 이모지 1개 허용), question(독자 질문 1개). 합계 150자 이내.
-C. instagram: cards 5장. 1장=표지(headline 15자 이내 인용구, body 인물명/작품명). 2~4장=headline 15자 이내 + body 60자 이내. 5장=마무리 인용 + body "전문은 프로필 링크에서". caption 300자 이내(해시태그 제외), hashtags 5~8개(# 포함, 인물명·작품명·무비스트 필수).
+C. instagram: cards 5장. 1장=표지(headline 15자 이내 인용구, body 인물명/작품명). 2~4장=headline 15자 이내 + body 60자 이내. 5장=마무리 인용 + body "전문은 프로필 링크에서". caption 300자 이내(해시태그 제외), hashtags 5~8개(# 포함, 인물명·작품명·archiveKD 필수).
 D. shorts: hook(첫 2초 문장), narration(18~22초, 110~130자), title(40자 이내), cuts 5~7개(sec는 "0-2" 형식, visual=화면 지시, subtitle=12자 이내).
 E. english: title(120자 이내, 사실형), body(3~4문장, 해외 독자가 모르는 고유명사는 짧게 풀이, 끝에 "Full interview (Korean): [link]").
 F. 판단: global_fit(1~5), shorts_fit(1~5), risk_flags(사람이 확인할 이유 목록. 사진 저작권, 미확인 사실, 민감 주제 등).

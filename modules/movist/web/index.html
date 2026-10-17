@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>archiveKR 영화제작실</title>
+<title>archiveKD 카드뉴스 제작실</title>
 <style>@font-face{font-family:'Noto Sans KR';src:url('/movist/fonts/body.ttf');font-weight:100 900}@font-face{font-family:'Black Han Sans';src:url('/movist/fonts/head.ttf')}</style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
@@ -134,14 +134,14 @@ ul.flags{margin:0;padding-left:18px}
 </head>
 <body>
 <section style="max-width:1180px;margin:20px auto;padding:18px;background:var(--panel);border:1px solid var(--line);border-radius:10px">
-<a href="/">← archiveKR</a><h2>영화제작실 · 카드뉴스 초안</h2>
+<a href="/">← archiveKD</a><h2>카드뉴스 제작실 · 카드뉴스 초안</h2>
 <p>제목을 입력하면 API 키 없이 1080 × 1440 PNG 카드를 만듭니다. 기사 변환에는 별도 AI 키가 필요합니다.</p>
 <label for="offline-headline">카드 제목 (Enter로 줄 나눔)</label><textarea id="offline-headline" rows="2">영화의 다음 장면
 어디서 시작할까?</textarea>
 <button id="offline-download" type="button">카드 PNG 내려받기</button><span id="offline-status" role="status"></span>
 </section>
 <script>
-document.getElementById('offline-download').onclick=async()=>{const status=document.getElementById('offline-status');status.textContent=' 만드는 중…';try{const r=await fetch('/api/movist/cards',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({headline:document.getElementById('offline-headline').value,tag:'리뷰 | 영화'})});if(!r.ok)throw Error('카드를 만들지 못했습니다');const url=URL.createObjectURL(await r.blob());const a=document.createElement('a');a.href=url;a.download='archiveKR-film-card.png';a.click();setTimeout(()=>URL.revokeObjectURL(url),10000);status.textContent=' PNG 저장 완료';}catch(e){status.textContent=e.message;}};
+document.getElementById('offline-download').onclick=async()=>{const status=document.getElementById('offline-status');status.textContent=' 만드는 중…';try{const r=await fetch('/api/movist/cards',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({headline:document.getElementById('offline-headline').value,tag:'콘텐츠'})});if(!r.ok)throw Error('카드를 만들지 못했습니다');const url=URL.createObjectURL(await r.blob());const a=document.createElement('a');a.href=url;a.download='archiveKD-card.png';a.click();setTimeout(()=>URL.revokeObjectURL(url),10000);status.textContent=' PNG 저장 완료';}catch(e){status.textContent=e.message;}};
 </script>
 
 <div class="wrap">
@@ -255,17 +255,17 @@ function igSpec(n){ return `C. instagram: cards는 반드시 정확히 ${n}개. 
    2~${n-1}장: headline 14자 이내(명사형·단정형), body 2문장 70자 이내. 기사 흐름(배경→과정→핵심 발언) 순.
    ${n}장=마무리: headline은 여운 있는 인용(18자 이내), body는 "전문은 프로필 링크에서".
    photo_hint: 그 카드에 어울리는 사진 종류를 10자 이내로(예: 인물 클로즈업, 투샷, 현장 스틸).
-   caption 300자 이내(해시태그 제외), hashtags 5~8개(# 포함, 인물명·작품명·무비스트 필수).`; }
+   caption 300자 이내(해시태그 제외), hashtags 5~8개(# 포함, 인물명·작품명·archiveKD 필수).`; }
 
 function rulesText(){ const r = $('rules').value.trim(); return r ? `\n[편집국 추가 규칙 — 반드시 지킨다]\n${r}\n` : ''; }
 function basePrompt(m){
-return `당신은 영화·인물 전문 매체 '무비스트(MOVIST)'의 디지털 배포 에디터다. 무비스트는 MOVE+IST, '세상을 움직이는 힘과 사람'을 다루는 매체다.
+return `당신은 archiveKD의 콘텐츠 디지털 배포 에디터다.
 
 [절대 규칙]
 1. 원문 기사에 없는 사실, 수치, 발언을 만들지 않는다.
 2. 따옴표 안 인물 발언은 원문 그대로 쓰거나, 줄일 때만 앞뒤를 자른다. 단어를 바꾸지 않는다.
 3. 스포일러(결말, 반전)는 쓰지 않는다.
-4. 매체명은 '무비스트'로 표기한다.
+4. 제작 브랜드는 'archiveKD'로 표기하고 원문 출처는 별도로 유지한다.
 5. 과장 표현(충격, 경악, 소름, 역대급)을 쓰지 않는다.
 6. 이모지는 채널 규격에서 허용한 경우에만 쓴다.
 [문체] 짧고 구체적인 문장. 형용사보다 장면과 숫자.
@@ -427,7 +427,7 @@ function drawCard(cv,cd,i,total){
     drawText(c,cd,i,{x:0,y:cd.tpos==='top'?140:0,w:W,h:cd.tpos==='top'?H-140:H,pad:M},cd.tpos,sz,isCover);
   }
   // 로고와 쪽수
-  c.fillStyle='#fff'; c.font='500 26px '+f.body; c.textAlign='center'; c.globalAlpha=.88; c.fillText('MOVIST',W/2,M+26); c.textAlign='left'; c.globalAlpha=1;
+  c.fillStyle='#fff'; c.font='500 26px '+f.body; c.textAlign='center'; c.globalAlpha=.88; c.fillText('archiveKD',W/2,M+26); c.textAlign='left'; c.globalAlpha=1;
   c.font='500 28px '+f.body; c.textAlign='right'; c.globalAlpha=.9;
   c.fillText(isCover&&opt.swipe ? '넘겨보기 ›' : `${i+1} / ${total}`, W-M, M+30); c.globalAlpha=1; c.textAlign='left';
 }
@@ -453,7 +453,7 @@ const UI_KEYS=['zoom','ox','oy','tpos','fs','locked','layout','photo'];
 function cleanJson(r,sp){ return JSON.stringify(r,(k,v)=>UI_KEYS.includes(k)?undefined:v,sp); }
 function newsletterHtml(n){
   return `<table role="presentation" width="100%" style="font-family:sans-serif;border-collapse:collapse"><tr><td style="padding:16px 0;border-top:3px solid ${opt.accent}">
-<p style="margin:0 0 6px;font-size:12px;color:#888">무비스트</p>
+<p style="margin:0 0 6px;font-size:12px;color:#888">archiveKD</p>
 <h2 style="margin:0 0 10px;font-size:20px;line-height:1.35;color:#111">${esc(lastArticle?.title||$('title').value)}</h2>
 <p style="margin:0 0 14px;font-size:15px;line-height:1.6;color:#333">${esc(n.blurb)}</p>
 <a href="${esc(link('newsletter'))}" style="display:inline-block;background:${opt.accent};color:#fff;text-decoration:none;padding:10px 16px;border-radius:4px;font-size:14px">${esc(n.cta||'기사 전문 읽기')}</a>
@@ -549,7 +549,7 @@ async function runAnalysis(){
   const rows=sc.slice(0,40).map(x=>{ const r=x.e.result||{}; const ch={}; Object.keys(METRICS).forEach(c=>{ const v=chScore(x.e,c,histAll()); if(v!=null) ch[c]=v; });
     return {score:x.s, rating:x.e.rating||null, tone:x.e.meta?.tone, title:x.e.article?.title, telegram_title:r.telegram?.title, cover:r.instagram?.cards?.[0]?.headline, cards:(r.instagram?.cards||[]).map(c=>c.headline), shorts_title:r.shorts?.title, hook:r.shorts?.hook, english_title:r.english?.title, x_first:r.x?.posts?.[0], channel_scores:ch, memo:x.e.memo||''}; });
   try{
-    analysis=await sampleFn.json(`당신은 무비스트(영화·인물 매체)의 디지털 성과 분석가다. 아래는 기사별 배포 문구와 독자 반응 점수(0~100, 내 기사들 사이의 상대 순위)다.
+    analysis=await sampleFn.json(`당신은 archiveKD의 디지털 콘텐츠 성과 분석가다. 아래는 기사별 배포 문구와 독자 반응 점수(0~100, 내 기사들 사이의 상대 순위)다.
 점수 높은 기사와 낮은 기사의 차이를 비교해 패턴을 찾아라. 제목 형식(발언 인용형/사실형/궁금증형), 길이, 톤, 인물 vs 작품 중심, 숫자 사용, 첫 문장 훅 등을 본다.
 데이터가 적으면 단정하지 말고 '가설'이라고 표시한다. 채널별로 다른 패턴이 보이면 채널을 밝힌다.
 

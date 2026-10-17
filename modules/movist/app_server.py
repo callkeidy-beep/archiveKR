@@ -1,5 +1,5 @@
 """
-무비스트 기사 변환기 — 로컬판 (시험판)
+콘텐츠 기사 변환기 — 로컬판 (시험판)
 
 claude.ai 웹판과 같은 화면을 내 컴퓨터에서 띄운다.
 - Claude 호출: config.env 의 ANTHROPIC_API_KEY 사용
@@ -110,7 +110,7 @@ class H(BaseHTTPRequestHandler):
             from cards import TEMPLATE
             return self.send(200, TEMPLATE)
         if u.path == "/api/health":
-            return self.send(200, {"ok": True, "agent": "archiveKR 영화제작실", "ai_configured": bool(core.API_KEY)})
+            return self.send(200, {"ok": True, "agent": "archiveKD 카드뉴스 제작실", "ai_configured": bool(core.API_KEY)})
         if u.path in ("/", "/index.html", "/movist", "/movist/"):
             html = (WEB / "index.html").read_text(encoding="utf-8")
             html = html.replace("<head>", '<head>\n<script src="/movist/shim.js"></script>', 1)
@@ -128,9 +128,9 @@ class H(BaseHTTPRequestHandler):
                 return self.send(200, core.latest_articles())
             except core.requests.HTTPError as exc:
                 status = exc.response.status_code if exc.response is not None else None
-                return self.send(502, {"error": "MOVIST 최신 기사 목록을 가져오지 못했습니다.", "upstreamStatus": status, "items": []})
+                return self.send(502, {"error": "콘텐츠 최신 기사 목록을 가져오지 못했습니다.", "upstreamStatus": status, "items": []})
             except Exception:
-                return self.send(502, {"error": "MOVIST 최신 기사 목록에 연결하지 못했습니다.", "items": []})
+                return self.send(502, {"error": "콘텐츠 최신 기사 목록에 연결하지 못했습니다.", "items": []})
         if u.path == "/api/fetch":
             return self.fetch_article(parse_qs(u.query).get("url", [""])[0])
         if u.path.startswith("/api/img/"):
@@ -251,10 +251,10 @@ def main():
     try:
         srv = ThreadingHTTPServer(("127.0.0.1", PORT), H)
     except OSError:
-        print(f"영화제작실 서버를 시작하지 못했습니다. 포트 {PORT} 상태를 확인해 주세요.", file=sys.stderr)
+        print(f"카드뉴스 제작실 서버를 시작하지 못했습니다. 포트 {PORT} 상태를 확인해 주세요.", file=sys.stderr)
         raise SystemExit(1)
     url = f"http://127.0.0.1:{PORT}"
-    print(f"무비스트 기사 변환기(로컬판) 실행 중: {url}")
+    print(f"콘텐츠 기사 변환기(로컬판) 실행 중: {url}")
     print("이 창을 닫으면 변환기도 꺼집니다.")
     if not core.API_KEY or core.API_KEY.startswith("여기에"):
         print("※ AI 변환은 안전한 환경 설정에서 ANTHROPIC_API_KEY 등록 후 사용할 수 있습니다.")

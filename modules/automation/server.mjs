@@ -12,7 +12,7 @@ export function movistUrl(value) {
 }
 function initialize(state) { state.automation ||= {settings:structuredClone(defaults),jobs:[],lastPollAt:null,lastPollError:null};state.automation.messages ||= [];state.automation.knownArticleUrls ||= [];state.automation.baselineAt ||= null;return state.automation; }
 function publicJob(job) { return {...job,card:job.card?`/api/automation/jobs/${job.id}/card`:null,cards:(job.card&&job.revision?job.cardFiles||[]:[]).map((card,index)=>({index,url:`/api/automation/jobs/${job.id}/cards/${index}?revision=${job.revision}`,sourceImage:card.sourceImage||null,credit:card.credit||''}))}; }
-const orchestration={controller:'archivekr',label:'archiveKR',method:'rules',permissions:{archivekr:['assign','coordinate','hold','request_human_approval'],automation:['collect','produce','publish_approved_revision'],desk:['edit','request_production'],studio:['render','request_photo_verification'],user:['confirm_photo_rights','approve','reject','request_changes']},finalPublicationAuthority:'user',policy:'하위 에이전트는 archiveKR의 제작 지시를 따르며 사진 사용 확인과 최종 게시 승인은 사용자만 결정합니다.'};
+const orchestration={controller:'archivekr',label:'archiveKD',method:'rules',permissions:{archivekr:['assign','coordinate','hold','request_human_approval'],automation:['collect','produce','publish_approved_revision'],desk:['edit','request_production'],studio:['render','request_photo_verification'],user:['confirm_photo_rights','approve','reject','request_changes']},finalPublicationAuthority:'user',policy:'하위 에이전트는 archiveKD의 제작 지시를 따르며 사진 사용 확인과 최종 게시 승인은 사용자만 결정합니다.'};
 function excerpts(body) { return String(body||'').split(/(?<=[.!?다])\s+|\n+/).map(s=>s.trim()).filter(Boolean).slice(0,4).join('\n\n').slice(0,1800); }
 
 export function createAutomation(context, options={}) {
@@ -79,7 +79,7 @@ export function createAutomation(context, options={}) {
   }
   async function ingest(inputUrl) {
     ensureActive();
-    const sourceUrl=movistUrl(inputUrl);if(!sourceUrl)throw new Error('MOVIST 공식 HTTPS 기사 주소가 필요합니다.');
+    const sourceUrl=movistUrl(inputUrl);if(!sourceUrl)throw new Error('설정된 수집 출처의 HTTPS 기사 주소가 필요합니다.');
     const existing=read().jobs.find(j=>j.sourceUrl===sourceUrl);if(existing)return existing;
     if(!options.fetchArticle)throw new Error('영화 기사 수집기가 연결되지 않았습니다.');
     const fetched=await options.fetchArticle(sourceUrl,{signal:controller.signal});
@@ -87,10 +87,10 @@ export function createAutomation(context, options={}) {
   }
   function ingestFetched(inputUrl,fetched) {
     ensureActive();
-    const sourceUrl=movistUrl(inputUrl);if(!sourceUrl)throw new Error('MOVIST 공식 HTTPS 기사 주소가 필요합니다.');
+    const sourceUrl=movistUrl(inputUrl);if(!sourceUrl)throw new Error('설정된 수집 출처의 HTTPS 기사 주소가 필요합니다.');
     if(typeof fetched?.title!=='string' || !fetched.title.trim() || typeof fetched?.body!=='string' || !fetched.body.trim())throw new Error('기사 제목과 본문을 확인할 수 없습니다.');
     // Recheck after network I/O: simultaneous ingestion must not duplicate articles.
-    const articleId=update((a,state)=>{const old=a.jobs.find(j=>j.sourceUrl===sourceUrl);if(old)return old.articleId;const article={id:randomUUID(),title:fetched.title.slice(0,300),body:fetched.body.slice(0,100000),sourceUrl,organization:'MOVIST',origin:'movist',status:'draft',questions:[],createdAt:now(),updatedAt:now(),sourceCredit:String(fetched.credit||fetched.author||'').slice(0,1000),sourcePublishedAt:typeof fetched.publishedAt==='string'?fetched.publishedAt.slice(0,100):'',sourceImages:(Array.isArray(fetched.images)?fetched.images:[]).filter(path=>typeof path==='string' && /^\/api\/movist\/img\/[0-9a-f]{12}\/[a-z0-9._-]+$/i.test(path)).slice(0,20),automationGenerated:false};state.articles.push(article);return article.id;});
+    const articleId=update((a,state)=>{const old=a.jobs.find(j=>j.sourceUrl===sourceUrl);if(old)return old.articleId;const article={id:randomUUID(),title:fetched.title.slice(0,300),body:fetched.body.slice(0,100000),sourceUrl,organization:'콘텐츠 수집',origin:'movist',status:'draft',questions:[],createdAt:now(),updatedAt:now(),sourceCredit:String(fetched.credit||fetched.author||'').slice(0,1000),sourcePublishedAt:typeof fetched.publishedAt==='string'?fetched.publishedAt.slice(0,100):'',sourceImages:(Array.isArray(fetched.images)?fetched.images:[]).filter(path=>typeof path==='string' && /^\/api\/movist\/img\/[0-9a-f]{12}\/[a-z0-9._-]+$/i.test(path)).slice(0,20),automationGenerated:false};state.articles.push(article);return article.id;});
     return enqueueArticle(articleId);
   }
   function patchJob(id,fn){return update(a=>{const job=a.jobs.find(j=>j.id===id);if(!job)throw new Error('작업이 없습니다.');fn(job);job.updatedAt=now();return job;});}
@@ -171,12 +171,12 @@ export function createAutomation(context, options={}) {
       const summary=excerpts(article.body);
       patchJob(job.id,j=>{j.judgments={desk:{role:'desk',method:'rules',outcome:article.sourceUrl?'review_required':'source_required',warnings:article.sourceUrl?['원문 발췌의 사실과 문맥을 사람이 확인해야 합니다.']:['원문 출처를 확인하세요.'],at:now()},studio:{role:'studio',method:'rules',outcome:article.sourceImages?.length?'photo_available':'text_card',warnings:article.sourceImages?.length?['사진 사용 권한을 확인하세요.']:['원문 사진이 없어 텍스트 카드를 제작합니다.'],at:now()},automation:{role:'automation',method:'rules',outcome:job.approval?.status==='approved'?'approved':'awaiting_human',warnings:['최종 승인된 제작 버전·채널·계정만 게시'],at:now()}};});
       update(a=>{const j=a.jobs.find(x=>x.id===job.id);const m=message(a,j,'desk','studio','production_request',`원고를 정리했습니다. 사진 ${article.sourceImages?.length||0}장으로 카드뉴스 제작이 가능한가요?`,a.messages.findLast(m=>m.jobId===j.id&&m.type==='article_received')?.id);message(a,j,'studio','desk','production_response',article.sourceImages?.length?'가능합니다. 다만 사진 출처와 사용 권한 확인이 필요합니다.':'원문 사진이 없어 사진 카드 제작은 어렵습니다. 텍스트 카드 초안은 제작 가능합니다.',m.id);});
-      const artifacts={kakao:`${article.title}\n\n${summary.slice(0,900)}\n\n기사 보기: ${article.sourceUrl||'편집 데스크 원고'}`,label:'원문 발췌 기반 자동 제작 · 사실 확인 및 문맥 검토 필요',outline:`${article.title}\n\n원문 핵심 발췌\n${summary}`,instagram:`${article.title}\n\n${summary.slice(0,1400)}\n\n출처: ${article.sourceUrl||'편집 데스크 원고'}\n#archiveKR #영화뉴스`.slice(0,2200),threads:`${article.title}\n\n${summary.slice(0,300)}\n\n${article.sourceUrl||''}`.slice(0,500)};
+      const artifacts={kakao:`${article.title}\n\n${summary.slice(0,900)}\n\n기사 보기: ${article.sourceUrl||'편집 데스크 원고'}`,label:'원문 발췌 기반 자동 제작 · 사실 확인 및 문맥 검토 필요',outline:`${article.title}\n\n원문 핵심 발췌\n${summary}`,instagram:`${article.title}\n\n${summary.slice(0,1400)}\n\n출처: ${article.sourceUrl||'편집 데스크 원고'}\n#archiveKD #콘텐츠`.slice(0,2200),threads:`${article.title}\n\n${summary.slice(0,300)}\n\n${article.sourceUrl||''}`.slice(0,500)};
       patchJob(job.id,j=>{j.artifacts=artifacts;j.steps.desk='complete';j.steps.social='complete';});
       update((a,state)=>{const item=state.articles.find(x=>x.id===job.articleId);item.automationJobId=job.id;item.production={method:'extractive',label:artifacts.label,outline:artifacts.outline};});
       if(!job.card){
         if(!options.renderCards&&!options.renderCard)throw new Error('카드 제작 서버가 연결되지 않았습니다.');
-        const payload={headline:article.title,body:summary,label:'archiveKR',sourceImages:article.sourceImages||[],sourceCredit:article.sourceCredit||'',sourceImage:article.sourceImages?.[0],tag:'영화 뉴스',cover:true};
+        const payload={headline:article.title,body:summary,label:'archiveKD',sourceImages:article.sourceImages||[],sourceCredit:article.sourceCredit||'',sourceImage:article.sourceImages?.[0],tag:'콘텐츠',cover:true};
         const rendered=options.renderCards?await options.renderCards(payload,{signal:controller.signal}):[await options.renderCard(payload,{signal:controller.signal})];
         const buffers=rendered.map(bytes=>Buffer.from(bytes));if(!buffers.length||buffers.length>10||buffers.some(bytes=>bytes.length<8||bytes.subarray(0,8).toString('hex')!=='89504e470d0a1a0a'))throw new Error('카드 이미지 생성에 실패했습니다.');
         mkdirSync(artifactDir,{recursive:true,mode:0o700});
@@ -217,7 +217,7 @@ export function createAutomation(context, options={}) {
             }
             update(a=>{a.lastPollError=failures?`${failures}개 기사 수집 실패. 다음 탐색에서 다시 확인합니다.`:null;});
           }
-        }catch{update(a=>{a.lastPollError='MOVIST 신규 기사 탐색에 실패했습니다. 출처 연결을 확인하세요.';});}
+        }catch{update(a=>{a.lastPollError='콘텐츠 신규 기사 탐색에 실패했습니다. 출처 연결을 확인하세요.';});}
       }
       for(const job of read().jobs.filter(j=>j.status==='queued').slice(0,10))await processJob(job);
     }finally{running=false;for(const resolve of stopWaiters.splice(0))resolve();}
@@ -241,7 +241,7 @@ export function createAutomation(context, options={}) {
     }
     if(request.method==='PATCH' && path==='/settings'){
       for(const key of ['enabled','pollingEnabled'])if(key in body && typeof body[key]!=='boolean')return json({ok:false,error:'활성화 값은 참/거짓이어야 합니다.'},400);
-      if('sourceUrl' in body && !movistUrl(body.sourceUrl))return json({ok:false,error:'MOVIST 공식 HTTPS 주소만 사용할 수 있습니다.'},400);
+      if('sourceUrl' in body && !movistUrl(body.sourceUrl))return json({ok:false,error:'설정된 수집 출처의 HTTPS 주소만 사용할 수 있습니다.'},400);
       if('pollSeconds' in body && (!Number.isInteger(body.pollSeconds)||body.pollSeconds<60||body.pollSeconds>86400))return json({ok:false,error:'탐색 주기는 60~86400초입니다.'},400);
       if('channels' in body && (!body.channels || typeof body.channels!=='object' || Array.isArray(body.channels)||Object.entries(body.channels).some(([k,v])=>!['instagram','threads'].includes(k)||typeof v!=='boolean')))return json({ok:false,error:'채널 설정을 확인하세요.'},400);
       const settings=update(a=>{if(body.sourceUrl && body.sourceUrl!==a.settings.sourceUrl){a.knownArticleUrls=[];a.baselineAt=null;a.lastPollAt=null;}for(const key of ['enabled','pollingEnabled','sourceUrl','pollSeconds'])if(key in body)a.settings[key]=body[key];Object.assign(a.settings.channels,body.channels||{});return a.settings;});return json({ok:true,settings});

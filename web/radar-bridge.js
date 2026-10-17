@@ -1,7 +1,7 @@
-/* Add archiveKR handoff without replacing the original radar UI. */
-const archiveKROpenDetail = openDetail;
+/* Add archiveKD handoff without replacing the original radar UI. */
+const archiveKDOpenDetail = openDetail;
 openDetail = function(id) {
-  archiveKROpenDetail(id);
+  archiveKDOpenDetail(id);
   const item = opportunities.find(o => o.id === id);
   const actions = document.querySelector('.drawer-actions');
   if (!item || !actions) return;
@@ -21,4 +21,4 @@ openDetail = function(id) {
   };
   actions.append(button);
 };
-document.title='archiveKR · 기회탐색';
+document.title='archiveKD · 기회탐색';
