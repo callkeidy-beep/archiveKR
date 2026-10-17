@@ -13,3 +13,7 @@
 루트에서 `npm run build:preview`로 `site-dist/`를 생성합니다. 외부 의존성 없는 정적 사이트이며 하위 경로에서도 실행됩니다. 생성물만 `gh-pages` 브랜치에 배포합니다. 이 브랜치는 체험용이며 실제 서버 데이터는 포함하지 않습니다.
 
 GitHub Pages가 아직 활성화되지 않았다면 저장소 Settings → Pages → Build and deployment에서 Deploy from a branch, `gh-pages`, `/ (root)`를 저장해야 합니다. 활성화 및 GitHub 배포 완료 후 예상 주소는 https://callkeidy-beep.github.io/archiveKR/ 입니다. 브랜치 푸시만으로 공개 사이트 활성화를 보장하지 않습니다.
+
+최종 MOVIST 표지 체험은 1080×1440(3:4), MOVIST 26px 중앙, 흰색 24px 외곽선 태그(56px), 제목 84px·최대 2줄·줄당 13자, 좌우 60px, 45%→92% 구간 그라데이션, 표지 본문 없음, 우하단 출처 20px를 적용합니다. 실제 사진을 가져오지 않는 체험용 텍스트 시안이며, 사진이 있는 완성 카드와 구분합니다. `card-renderer.js`는 `demo-api.js`보다 먼저 로드해야 합니다. 배포 빌더가 `fonts/head.ttf`, `fonts/body.ttf`를 제공하면 해당 글꼴을 사용하고, 없으면 브라우저 대체 글꼴입니다.
+
+archiveKR이 메인 통제자이며 자동화→데스크→제작실→데스크→archiveKR→사용자 메시지를 남깁니다. 실제 등록된 사진 수만 표시하고, 카카오용 문안도 생성합니다. 사진이 등록된 경우 사진 사용 확인과 최종 버전 승인이 필요합니다. 사진 없는 텍스트 시안은 사진 확인 항목이 필요하지 않습니다. 승인해도 이 공개 체험은 외부 플랫폼에 전송하지 않습니다.

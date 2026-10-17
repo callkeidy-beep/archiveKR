@@ -31,8 +31,9 @@
     for (const [id,value] of Object.entries({ title:article.title,body:article.body,url:article.sourceUrl||'',author:article.sourceCredit||'',credit:article.sourceCredit||'','offline-headline':article.title })) { const input=document.getElementById(id); if(input)input.value=value; }
     const parts=article.body.split(/\n+/).map(v=>v.trim()).filter(Boolean).slice(0,4);
     result = {
-      instagram:{cards:[{no:1,headline:article.title,body:'',photo_hint:'',photo:null},...parts.map((body,i)=>({no:i+2,headline:`원문 핵심 ${i+1}`,body:body.slice(0,260),photo_hint:'',photo:null}))],caption:e.data.artifacts?.instagram||article.title,hashtags:['#archiveKR','#영화뉴스']},
+      instagram:{cards:[{no:1,headline:article.title,body:'',photo_hint:'',photo:files.length?0:null},...parts.map((body,i)=>({no:i+2,headline:`원문 핵심 ${i+1}`,body:body.slice(0,260),photo_hint:'',photo:files.length?Math.min(i,files.length-1):null}))],caption:e.data.artifacts?.instagram||article.title,hashtags:['#archiveKR','#영화뉴스']},
       threads:{text:e.data.artifacts?.threads||article.title},
+      kakao:{text:e.data.artifacts?.kakao||article.title,question:''},
     };
     lastArticle={title:article.title,body:article.body,url:article.sourceUrl||'',author:article.sourceCredit||'',credit:article.sourceCredit||''};
     current='instagram';render();drawAll();
