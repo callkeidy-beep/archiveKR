@@ -41,7 +41,7 @@ const approvalDrafts = new Map();
 let loadingAutomation = false;
 function downloadText(name, value) { const url = URL.createObjectURL(new Blob([value], {type:'text/plain;charset=utf-8'})); const link = element('a'); link.href = url; link.download = name; link.click(); setTimeout(()=>URL.revokeObjectURL(url),1000); }
 function contentBlock(label, text, filename) { const box = element('details',undefined,'artifact-text'); box.append(element('summary',label)); box.append(element('p',text)); const actions=element('div',undefined,'artifact-actions'); const copy=element('button','문안 복사');copy.onclick=async()=>{try{await navigator.clipboard.writeText(text);toast('문안을 복사했습니다.');}catch{toast('복사할 수 없습니다. 문안 다운로드를 이용하세요.');}}; const download=element('button','문안 다운로드');download.onclick=()=>downloadText(filename,text);actions.append(copy,download);box.append(actions);return box; }
-const roleNames = { desk:'취재·편집 데스크',studio:'카드뉴스 제작실',automation:'수집·제작·배포 자동화',user:'사용자',archivekr:'archiveKD' };
+const roleNames = { desk:'취재·편집 데스크',studio:'콘텐츠 자동화 제작실',automation:'수집·제작·배포 자동화',user:'사용자',archivekr:'archiveKD' };
 const approvalNames = {pending:'최종 승인 대기',approved:'승인 완료',rejected:'게시 거절',changes_requested:'수정 요청',invalidated:'기존 승인 만료'};
 const outcomeNames = {review_required:'원문 사실·문맥 검토 필요',source_required:'출처 확인 필요',photo_available:'사진 있음 · 사용 권한 확인',text_card:'텍스트 카드 제작 가능',awaiting_human:'사용자 최종 승인 필요',approved:'사용자 최종 승인 확인',human_rejected:'사용자가 게시를 거절했습니다',revision_required:'사용자 수정 요청 처리 필요'};
 function time(value) { return value ? new Date(value).toLocaleString('ko-KR',{timeZone:'Asia/Seoul'}) : ''; }
