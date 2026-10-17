@@ -3,7 +3,7 @@ import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 const hash=value=>createHash('sha256').update(typeof value==='string'||Buffer.isBuffer(value)?value:JSON.stringify(value)).digest('hex');
-const sourceHash=article=>hash(['movist-upload-final-2026-10-17',article?.title,article?.body,article?.sourceUrl,article?.sourceCredit,article?.sourceImages]);
+const sourceHash=article=>hash(['movist-upload-final-2026-10-17-archivekd',article?.title,article?.body,article?.sourceUrl,article?.sourceCredit,article?.sourceImages]);
 const now = () => new Date().toISOString();
 const defaults = { enabled: true, pollingEnabled: true, sourceUrl: 'https://www.movist.com/', pollSeconds: 300, pollingFirstRunBaseline: true, channels: { instagram: true, threads: true } };
 const json = (body, status=200) => Response.json(body, {status});
