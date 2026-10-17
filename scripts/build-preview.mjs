@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile, copyFile, rm } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { createHash } from 'node:crypto';
 const root=fileURLToPath(new URL('../',import.meta.url));
 const out=path.join(root,'site-dist');
 await rm(out,{recursive:true,force:true});
@@ -15,3 +16,14 @@ console.log('Public demo built in site-dist/ (no server data or credentials).');
 
 await mkdir(path.join(out,'fonts'),{recursive:true});
 for (const file of ['head.ttf','body.ttf']) await copyFile(path.join(root,'modules/movist/fonts',file),path.join(out,'fonts',file));
+
+// Version every page dependency so an older cached studio cannot survive a release.
+const assets = ['app.js','style.css','card-renderer.js','demo-api.js','studio.html'];
+const digest = createHash('sha256');
+for (const file of ['index.html', ...assets]) digest.update(await readFile(path.join(out,file)));
+const version = digest.digest('hex').slice(0,16);
+for (const file of ['index.html','studio.html']) {
+  let contents = await readFile(path.join(out,file),'utf8');
+  for (const asset of assets) contents = contents.replaceAll('./'+asset+'"','./'+asset+'?v='+version+'"');
+  await writeFile(path.join(out,file),contents);
+}

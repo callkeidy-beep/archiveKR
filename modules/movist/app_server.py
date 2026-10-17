@@ -110,7 +110,7 @@ class H(BaseHTTPRequestHandler):
             from cards import TEMPLATE
             return self.send(200, TEMPLATE)
         if u.path == "/api/health":
-            return self.send(200, {"ok": True, "agent": "archiveKD 카드뉴스 제작실", "ai_configured": bool(core.API_KEY)})
+            return self.send(200, {"ok": True, "agent": "archiveKD 콘텐츠 자동화 제작실", "ai_configured": bool(core.API_KEY)})
         if u.path in ("/", "/index.html", "/movist", "/movist/"):
             html = (WEB / "index.html").read_text(encoding="utf-8")
             html = html.replace("<head>", '<head>\n<script src="/movist/shim.js"></script>', 1)
@@ -251,7 +251,7 @@ def main():
     try:
         srv = ThreadingHTTPServer(("127.0.0.1", PORT), H)
     except OSError:
-        print(f"카드뉴스 제작실 서버를 시작하지 못했습니다. 포트 {PORT} 상태를 확인해 주세요.", file=sys.stderr)
+        print(f"콘텐츠 자동화 제작실 서버를 시작하지 못했습니다. 포트 {PORT} 상태를 확인해 주세요.", file=sys.stderr)
         raise SystemExit(1)
     url = f"http://127.0.0.1:{PORT}"
     print(f"콘텐츠 기사 변환기(로컬판) 실행 중: {url}")

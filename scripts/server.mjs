@@ -26,7 +26,7 @@ async function movieJson(path, options = {}) {
 }
 async function renderMovieCard(data, { signal } = {}) {
   const r = await fetch(movieOrigin + '/api/movist/cards', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(data), signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(30000)]) : AbortSignal.timeout(30000) });
-  if (!r.ok) throw new Error('카드뉴스 제작실에서 카드 이미지를 만들지 못했습니다.');
+  if (!r.ok) throw new Error('콘텐츠 자동화 제작실에서 카드 이미지를 만들지 못했습니다.');
   return r.arrayBuffer();
 }
 const automation = createAutomation(context, {
@@ -108,7 +108,7 @@ export async function route(request) {
       }
       if (response.ok && ['/movist','/movist/'].includes(url.pathname)) body = Buffer.from(body).toString('utf8').replace('</body>', '<script src="/studio-bridge.js"></script></body>');
       return new Response(body, { status: response.status, headers: outHeaders });
-    } catch { return json({ ok: false, error: '카드뉴스 제작실 서버를 시작하세요. README의 실행 명령을 확인하세요.' }, 503); }
+    } catch { return json({ ok: false, error: '콘텐츠 자동화 제작실 서버를 시작하세요. README의 실행 명령을 확인하세요.' }, 503); }
   }
   if (url.pathname.startsWith('/api/desk/')) {
     const response = await handleDesk(request, context);
