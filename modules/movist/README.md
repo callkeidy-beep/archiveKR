@@ -42,3 +42,11 @@ modules/movist/.venv/bin/python -m unittest discover -s modules/movist -p test_s
 ```
 
 6개 오프라인 테스트가 실제 임시 HTTP 서버에서 PNG 크기, 잘못된 JSON/보관함 키 거절, 정상 저장, 손상된 보관함 보존, AI 예외 비밀값 비노출, HTTPS 기사 주소 허용 범위를 검증합니다. 보관함은 movist_history/movist_rules 문자열만 받으며, 손상 파일은 409 응답으로 보존합니다. API 실패는 외부 서비스 예외본문을 반환하거나 콘솔에 출력하지 않습니다.
+
+### 승인된 카드 디자인과 자동 제작 API
+
+최근 첨부 ZIP의 웹 화면은 왼쪽 큰 로고가 있던 이전판입니다. 현재 스튜디오의 최신 수정과 함께 첨부된 디자인 규격을 유지합니다. 자동 렌더러는 이 규격의 1080×1440, 가운데 MOVIST(26px·자간3px), 흰 테두리 태그, 제목 84/68px·굵기800·줄간격1.3·자간-2%, 안쪽 본문36px, 표지 부제 기본 숨김, 45%부터 아래92% 검정 그라데이션을 적용합니다. 외부 폰트 다운로드 없이 번들 Noto Sans KR을 씁니다. 사진 출처는 20px로 표시합니다.
+
+`POST /api/movist/cards`는 기존대로 PNG 한 장을 반환합니다. `POST /api/movist/cards/render-set`는 `{cards:[{headline,body,sourceImage}],credit,label,tag,ratio}`를 받아 순서대로 표지·안쪽 PNG를 제작합니다. `sourceImage`는 수집 시 반환한 `/api/movist/img/...` 로컬 경로만 허용합니다. 응답 `cards[].data`는 base64 PNG이며 `manifest`에는 장수, 사진 사용 확인 대기 여부, 최종 승인 필요 여부를 기록합니다. 최대10장, 비율은 `34`·`45`·`916`입니다. 개별 카드의 `layout`은 `full`·`split`·`text`, `size`는 `small`·`normal`·`large`입니다. `GET /api/movist/cards/template`로 디자인 값을 확인합니다.
+
+표지 제목은 최대 2줄·각 13자이며 초과하면 400으로 알립니다. 긴 사진 출처는 화면에서만 말줄임하며 원본 메타데이터를 바꾸지 않습니다. 문안이 영역을 넘으면 400으로 알리고 자동으로 잘라내지 않습니다. 사진을 가져오고 출처를 적는 것은 사진 사용 허락을 의미하지 않습니다. 실제 사용 권한 확인과 게시 승인은 archiveKR 승인함에서 별도로 진행합니다. 렌더러는 외부 게시를 수행하지 않습니다.

@@ -34,6 +34,34 @@ class ServerTests(unittest.TestCase):
                 for source in ['/api/movist/img/abcdef012345/../secret.jpg','/etc/passwd','https://www.movist.com/a.jpg','/api/movist/img/abcdef012345/missing.jpg']:
                     self.assertEqual(self.post('/cards',{'sourceImage':source})[0],400)
 
+    def test_render_set_preserves_photos_and_rights_gate(self):
+        import base64
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);folder=root/'abcdef012345';folder.mkdir()
+            for name,color in [('01.jpg','#e04020'),('02.jpg','#2040e0')]:
+                Image.new('RGB',(600,800),color).save(folder/name)
+            with patch.object(app,'TMP',root):
+                code,raw=self.post('/cards/render-set',{'cards':[
+                    {'headline':'첫 번째\n영화 이야기','sourceImage':'/api/movist/img/abcdef012345/01.jpg'},
+                    {'headline':'두 번째 장면','body':'기사에 담긴 영화 이야기를 정리합니다.','sourceImage':'/api/movist/img/abcdef012345/02.jpg'}]})
+                self.assertEqual(code,200)
+                result=json.loads(raw);self.assertTrue(result['manifest']['approvalRequired'])
+                self.assertEqual(result['manifest']['photoRights'],'pending')
+                self.assertEqual(len(result['cards']),2)
+                colors=[]
+                for card in result['cards']:
+                    image=Image.open(io.BytesIO(base64.b64decode(card['data'])))
+                    self.assertEqual(image.size,(1080,1440));colors.append(image.getpixel((10,300)))
+                self.assertGreater(colors[0][0],colors[0][2]);self.assertGreater(colors[1][2],colors[1][0])
+    def test_render_limits_and_ratios(self):
+        code,raw=self.post('/cards',{'headline':'세로 카드','ratio':'916'})
+        self.assertEqual(code,200);self.assertEqual(Image.open(io.BytesIO(raw)).size,(1080,1920))
+        self.assertEqual(self.post('/cards',{'cover':False,'body':'긴 문안 '*300})[0],400)
+        self.assertEqual(self.post('/cards',{'headline':'첫째 줄\n둘째 줄\n셋째 줄'})[0],400)
+        self.assertEqual(self.post('/cards',{'headline':'12345678901234'})[0],400)
+        for cards in [[],[{}]*11,'invalid']:
+            self.assertEqual(self.post('/cards/render-set',{'cards':cards})[0],400)
+
     def test_malformed_and_invalid_store(self):
         for data in [b'{',[],{'key':'ANTHROPIC_API_KEY','value':'must-not-persist'},{'key':'movist_rules','value':{}}]:
             self.assertEqual(self.post('/store',data)[0],400)

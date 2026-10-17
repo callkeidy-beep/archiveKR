@@ -7,7 +7,7 @@ import {createStore} from '../../scripts/store.mjs';
 import {createAutomation,movistUrl} from './server.mjs';
 const png=Buffer.from('89504e470d0a1a0a0000','hex');
 function setup(t,opts={}){const dir=mkdtempSync(join(tmpdir(),'archivekr-auto-'));t.after(()=>rmSync(dir,{recursive:true,force:true}));const store=createStore(join(dir,'store.json'));const options={artifactDir:join(dir,'cards'),env:{},fetchArticle:async()=>({title:'영화 소식',body:'공식 영화 소식입니다. 새로운 일정이 공개됐습니다.'}),renderCard:async()=>png,...opts};return {store,options,engine:createAutomation(store,options)};}
-async function approve(engine,store,channels=['threads']){const job=store.read().automation.jobs[0];const response=await engine.handle(new Request(`http://local/api/automation/jobs/${job.id}/decision`,{method:'POST',body:JSON.stringify({decision:'approve',revision:job.revision,channels,targets:(await (await engine.handle(new Request('http://local/api/automation/status'))).json()).targets})}));assert.equal(response.status,200);}
+async function approve(engine,store,channels=['threads']){const job=store.read().automation.jobs[0];const response=await engine.handle(new Request(`http://local/api/automation/jobs/${job.id}/decision`,{method:'POST',body:JSON.stringify({decision:'approve',revision:job.revision,channels,photoRightsConfirmed:!!job.photoReview?.required,targets:(await (await engine.handle(new Request('http://local/api/automation/status'))).json()).targets})}));assert.equal(response.status,200);}
 test('only official HTTPS MOVIST URLs are accepted',()=>{for(const u of ['http://www.movist.com/a','https://evil.movist.com/a','https://www.movist.com.evil/a','https://u:p@www.movist.com/a','https://127.0.0.1/a'])assert.equal(movistUrl(u),null);assert.equal(movistUrl('https://www.movist.com/a#frag'),'https://www.movist.com/a');});
 test('concurrent source ingestion deduplicates article and persists artifacts across restart',async t=>{const {store,engine,options}=setup(t);const [a,b]=await Promise.all([engine.ingest('https://www.movist.com/a'),engine.ingest('https://www.movist.com/a')]);assert.equal(a.id,b.id);assert.equal(store.read().articles.length,1);await engine.tick();let job=store.read().automation.jobs[0];assert.equal(job.status,'ready');assert.equal(job.steps.card,'complete');assert.equal(job.approval.status,'pending');assert.match(job.artifacts.threads,/공식 영화 소식/);const restarted=createAutomation(store,options);await restarted.tick();assert.equal(store.read().automation.jobs[0].attempts,1);const response=await restarted.handle(new Request(`http://local/api/automation/jobs/${job.id}/card`));assert.equal(response.headers.get('content-type'),'image/png');});
 test('empty desk article waits and resumes once body arrives without overwriting original',async t=>{const {store,engine}=setup(t);store.update(s=>s.articles.push({id:'manual',title:'제목',body:'',updatedAt:'a'}));engine.enqueueArticle('manual');await engine.tick();assert.equal(store.read().automation.jobs[0].status,'awaiting_content');store.update(s=>{s.articles[0].body='기자가 직접 작성한 원고입니다.';s.articles[0].updatedAt='b';});engine.enqueueArticle('manual');await engine.tick();assert.equal(store.read().articles[0].body,'기자가 직접 작성한 원고입니다.');assert.equal(store.read().automation.jobs[0].status,'ready');});
@@ -156,4 +156,40 @@ test('late successful final receipt belongs to old revision history and never ma
  await engine.ingest('https://www.movist.com/late-receipt');await engine.tick();await approve(engine,store);const firstRevision=store.read().automation.jobs[0].revision,work=engine.tick();await entered;
  store.update(s=>{s.articles[0].body='두 번째 버전의 본문으로 수정합니다.';});engine.enqueueArticle(store.read().articles[0].id);finish();await work;let job=store.read().automation.jobs[0];assert.equal(job.approval.status,'pending');assert.deepEqual(job.publications,{});assert.equal(job.publicationHistory.find(h=>h.revision===firstRevision).publications.threads.id,'remote-2');assert.equal(job.publicationHistory.find(h=>h.revision===firstRevision).publications.threads.status,'published');
  await approve(engine,store);await engine.tick();job=store.read().automation.jobs[0];assert.equal(calls,4);assert.equal(job.publications.threads.id,'remote-4');assert.equal(job.status,'published');
+});
+
+test('archiveKR coordinates causal role exchange and photo rights must be confirmed per revision',async t=>{
+ let writes=0;const {engine,store}=setup(t,{env:{THREADS_USER_ID:'123',THREADS_ACCESS_TOKEN:'token'},publishFetch:async()=>{writes++;return Response.json({id:'remote'});}});
+ engine.ingestFetched('https://www.movist.com/rights',{title:'사진 기사',body:'사진 기사 본문입니다.',images:['/api/movist/img/123456abcdef/a.jpg','/api/movist/img/123456abcdef/b.jpg','/api/movist/img/123456abcdef/c.jpg']});await engine.tick();
+ let job=store.read().automation.jobs[0];const messages=store.read().automation.messages;
+ assert.equal(messages.find(m=>m.type==='article_received').text,'새 기사를 가져왔습니다. 기사 기획과 카드 제작을 요청합니다.');
+ assert.match(messages.find(m=>m.type==='production_request').text,/사진 3장/);
+ assert.equal(messages.find(m=>m.type==='approval_requested').from,'archivekr');
+ for(const type of ['article_received','production_request','production_response','production_complete','approval_requested'])assert.ok(messages.find(m=>m.type===type).replyTo);
+ assert.equal(job.photoReview.status,'pending');assert.match(job.artifacts.kakao,/기사 보기:/);assert.equal(writes,0);
+ const status=await (await engine.handle(new Request('http://local/api/automation/status'))).json();assert.equal(status.orchestrator.controller,'archivekr');assert.equal(status.orchestrator.finalPublicationAuthority,'user');
+ const noRights=await engine.handle(new Request(`http://local/api/automation/jobs/${job.id}/decision`,{method:'POST',body:JSON.stringify({decision:'approve',revision:job.revision,channels:['threads'],targets:status.targets})}));assert.equal(noRights.status,400);
+ await approve(engine,store);assert.equal(store.read().automation.jobs[0].photoReview.status,'confirmed');await engine.tick();assert.equal(writes,2);
+ store.update(s=>{s.articles[0].sourceImages.pop();});await engine.tick();job=store.read().automation.jobs[0];assert.equal(job.photoReview.status,'pending');assert.equal(job.approval.status,'pending');assert.equal(writes,2);
+});
+test('all card images are versioned and integrity checked, not just the cover',async t=>{
+ const second=Buffer.concat([png,Buffer.from('second')]);const {engine,store}=setup(t,{renderCards:async()=>[png,second]});await engine.ingest('https://www.movist.com/set');await engine.tick();
+ let job=store.read().automation.jobs[0];let status=await (await engine.handle(new Request('http://local/api/automation/status'))).json();assert.equal(status.jobs[0].cards.length,2);
+ const url=status.jobs[0].cards[1].url;assert.deepEqual(Buffer.from(await (await engine.handle(new Request('http://local'+url))).arrayBuffer()),second);
+ await approve(engine,store);
+ // Altering a sibling image hash without regenerating the bound set cannot retain approval.
+ store.update(s=>{s.automation.jobs[0].cardFiles[1].hash='0'.repeat(64);});await engine.handle(new Request('http://local/api/automation/status'));job=store.read().automation.jobs[0];assert.equal(job.approval.status,'invalidated');assert.equal(job.status,'queued');
+ assert.deepEqual(Buffer.from(await (await engine.handle(new Request('http://local'+url))).arrayBuffer()),second);
+});
+
+test('Instagram publishes approved full card set as one carousel after each media readiness check',async t=>{
+ const requests=[];let sequence=0;const {engine,store}=setup(t,{renderCards:async()=>[png,Buffer.concat([png,Buffer.from('second')]),Buffer.concat([png,Buffer.from('third')])],env:{INSTAGRAM_USER_ID:'123',INSTAGRAM_ACCESS_TOKEN:'token',ARCHIVEKR_PUBLIC_MEDIA_BASE_URL:'https://archive.example'},publishFetch:async(url,init)=>{requests.push({url,method:init.method,params:new URLSearchParams(init.body)});return init.method==='GET'?Response.json({status_code:'FINISHED'}):Response.json({id:`container-${++sequence}`});}});
+ await engine.ingest('https://www.movist.com/carousel');await engine.tick();assert.equal(requests.length,0);await approve(engine,store,['instagram']);await engine.tick();
+ assert.deepEqual(requests.map(r=>r.method),['POST','GET','POST','GET','POST','GET','POST','GET','POST']);
+ const children=requests.filter(r=>r.params.get('is_carousel_item')==='true');assert.equal(children.length,3);children.forEach((r,index)=>assert.match(r.params.get('image_url'),new RegExp(`/cards/${index}\\?revision=[a-f0-9]{64}$`)));
+ const parent=requests.find(r=>r.params.get('media_type')==='CAROUSEL');assert.equal(parent.params.get('children'),'container-1,container-2,container-3');assert.equal(requests.at(-1).params.get('creation_id'),'container-4');assert.equal(store.read().automation.jobs[0].publications.instagram.status,'published');await engine.tick();assert.equal(requests.length,9);
+});
+test('a card set edit during carousel child creation stops before remaining children and parent publication',async t=>{
+ const requests=[];const {engine,store}=setup(t,{renderCards:async()=>[png,png],env:{INSTAGRAM_USER_ID:'123',INSTAGRAM_ACCESS_TOKEN:'token',ARCHIVEKR_PUBLIC_MEDIA_BASE_URL:'https://archive.example'},publishFetch:async(url,init)=>{requests.push({url,method:init.method});store.update(s=>{s.articles[0].body='원고를 교체했습니다.';});return Response.json({id:'first-child'});}});
+ await engine.ingest('https://www.movist.com/carousel-change');await engine.tick();await approve(engine,store,['instagram']);await engine.tick();assert.equal(requests.length,1);assert.equal(requests[0].method,'POST');assert.notEqual(store.read().automation.jobs[0].approval.status,'approved');
 });

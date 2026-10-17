@@ -24,14 +24,40 @@ async function movieJson(path, options = {}) {
   if (!r.ok) throw new Error('MOVIST 수집 서버에서 기사 본문을 확인하지 못했습니다. 연결 상태를 확인하세요.');
   return data;
 }
+async function renderMovieCard(data, { signal } = {}) {
+  const r = await fetch(movieOrigin + '/api/movist/cards', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(data), signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(30000)]) : AbortSignal.timeout(30000) });
+  if (!r.ok) throw new Error('영화 제작실에서 카드 이미지를 만들지 못했습니다.');
+  return r.arrayBuffer();
+}
 const automation = createAutomation(context, {
   artifactDir: resolve(dirname(dataFile), 'automation'),
   fetchArticle: (url, options) => movieJson('fetch?url=' + encodeURIComponent(url), options),
   discoverArticles: async (_sourceUrl, options) => (await movieJson('latest', options)).items.map(item => item.url),
-  renderCard: async (data, { signal } = {}) => {
-    const r = await fetch(movieOrigin + '/api/movist/cards', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(data), signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(30000)]) : AbortSignal.timeout(30000) });
-    if (!r.ok) throw new Error('영화 제작실에서 카드 이미지를 만들지 못했습니다.');
-    return r.arrayBuffer();
+  renderCard: renderMovieCard,
+  renderCards: async (data, options = {}) => {
+    const photos = (data.sourceImages || []).slice(0, 3);
+    const count = Math.max(1, photos.length);
+    const paragraphs = String(data.body || '').split(/\n+/).filter(Boolean);
+    const titleChars = [...String(data.headline || '')];
+    const shortTitle = titleChars.length > 26 ? titleChars.slice(0, 25).join('') + '…' : titleChars.join('');
+    const chars = [...shortTitle];
+    let split = Math.ceil(chars.length / 2);
+    if (chars.length > 13) {
+      const gaps = chars.map((ch, i) => ch === ' ' && i <= 13 && chars.length - i - 1 <= 13 ? i : -1).filter(i => i > 0);
+      if (gaps.length) split = gaps.sort((a, b) => Math.abs(a - split) - Math.abs(b - split))[0];
+    }
+    const headline = chars.length > 13 ? chars.slice(0, split).join('').trim() + '\n' + chars.slice(split).join('').trim() : shortTitle;
+    const cards = [];
+    for (let index = 0; index < count; index++) {
+      cards.push(await renderMovieCard({
+        headline,
+        body: index === 0 ? '' : (paragraphs[index - 1] || data.body || '').slice(0, 220),
+        label: 'MOVIST', tag: data.tag || '영화 | 뉴스', cover: index === 0,
+        sourceImage: photos[index], credit: data.sourceCredit || '사진 출처·사용 권한 확인 필요',
+        index, total: count,
+      }, options));
+    }
+    return cards;
   },
 });
 const backgroundEnabled = process.env.ARCHIVEKR_AUTOMATION_BACKGROUND !== '0';

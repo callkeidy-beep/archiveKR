@@ -106,6 +106,9 @@ class H(BaseHTTPRequestHandler):
             name = u.path.rsplit("/", 1)[-1]
             if name in ("head.ttf", "body.ttf"):
                 return self.send(200, (BASE / "fonts" / name).read_bytes(), "font/ttf")
+        if u.path == "/api/cards/template":
+            from cards import TEMPLATE
+            return self.send(200, TEMPLATE)
         if u.path == "/api/health":
             return self.send(200, {"ok": True, "agent": "archiveKR 영화제작실", "ai_configured": bool(core.API_KEY)})
         if u.path in ("/", "/index.html", "/movist", "/movist/"):
@@ -170,29 +173,43 @@ class H(BaseHTTPRequestHandler):
 
     def handle_post(self):
         u = urlparse(self.path.replace("/api/movist/", "/api/", 1))
-        if u.path == "/api/cards":
+        if u.path in ("/api/cards", "/api/cards/render-set"):
             try:
-                from cards import render_card
+                from cards import render_card, TEMPLATE
                 from io import BytesIO
+                from PIL import Image
+                import base64
                 data = self.json_body()
-                out = BytesIO()
-                background = None
-                source_image = data.get("sourceImage")
-                if source_image is not None:
-                    if not isinstance(source_image, str) or not re.fullmatch(r"/api/movist/img/[a-f0-9]{12}/[A-Za-z0-9_-]+\.(?:jpg|jpeg|png|webp)", source_image):
-                        raise ValueError("invalid_source_image")
-                    image_path = (TMP / source_image.removeprefix("/api/movist/img/")).resolve()
-                    if TMP.resolve() not in image_path.parents or not image_path.is_file():
-                        raise ValueError("invalid_source_image")
-                    from PIL import Image
-                    with Image.open(image_path) as photo:
-                        if photo.width * photo.height > 40_000_000:
-                            raise ValueError("source_image_too_large")
-                        background = photo.convert("RGB")
-                render_card(data, background=background).save(out, format="PNG")
-                return self.send(200, out.getvalue(), "image/png")
-            except (ValueError, TypeError) as exc:
-                return self.send(400, {"error": "카드 요청 형식이 올바르지 않습니다."})
+                multiple = u.path.endswith("render-set")
+                items = data.get("cards") if multiple else [data]
+                if not isinstance(items, list) or not 1 <= len(items) <= 10:
+                    raise ValueError("invalid_card_count")
+                rendered = []
+                for index, item in enumerate(items):
+                    if not isinstance(item, dict): raise ValueError("invalid_card")
+                    card = {k:v for k,v in data.items() if k != "cards"}
+                    card.update(item)
+                    if multiple:
+                        card.update(index=index, total=len(items), cover=index == 0)
+                    background = None
+                    source_image = card.get("sourceImage")
+                    if source_image is not None:
+                        if not isinstance(source_image, str) or not re.fullmatch(r"/api/movist/img/[a-f0-9]{12}/[A-Za-z0-9_-]+\.(?:jpg|jpeg|png|webp)", source_image):
+                            raise ValueError("invalid_source_image")
+                        image_path = (TMP / source_image.removeprefix("/api/movist/img/")).resolve()
+                        if TMP.resolve() not in image_path.parents or not image_path.is_file():
+                            raise ValueError("invalid_source_image")
+                        with Image.open(image_path) as photo:
+                            if photo.width * photo.height > 40_000_000: raise ValueError("source_image_too_large")
+                            background = photo.convert("RGB")
+                    out = BytesIO()
+                    render_card(card, background=background).save(out, format="PNG")
+                    rendered.append({"index": index, "mimeType": "image/png", "data": base64.b64encode(out.getvalue()).decode(), "sourceImage": source_image, "photoRights": "pending" if source_image else "not_applicable"})
+                if not multiple:
+                    return self.send(200, base64.b64decode(rendered[0]["data"]), "image/png")
+                return self.send(200, {"template": TEMPLATE["id"], "cards": rendered, "manifest": {"count": len(rendered), "photoRights": "pending" if any(c["sourceImage"] for c in rendered) else "not_applicable", "approvalRequired": True}})
+            except (ValueError, TypeError):
+                return self.send(400, {"error": "카드 요청 형식이 올바르지 않거나 문안이 카드 영역을 초과합니다."})
         if u.path == "/api/claude":
             if not core.API_KEY or core.API_KEY.startswith("여기에"):
                 return self.send(400, {"error": "안전한 환경 설정에서 ANTHROPIC_API_KEY를 등록해 주세요"})
