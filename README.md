@@ -1,5 +1,7 @@
 # 콘텐츠메이커 엔진
 
+[공개 샘플 사이트](https://callkeidy-beep.github.io/content-maker-engine/) · [GitHub 저장소](https://github.com/callkeidy-beep/content-maker-engine)
+
 보도자료와 제보를 분류하고 기사 후보를 고르는 한국어 편집 작업대. 마지막 판단은 사람이 합니다.
 
 ## 현재 완성 범위 — 1단계 샘플
