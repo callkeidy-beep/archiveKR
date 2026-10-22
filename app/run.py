@@ -7,4 +7,9 @@ from dotenv import load_dotenv
 load_dotenv(Path(__file__).resolve().parents[1] / ".env", override=False)
 
 if __name__ == '__main__':
-    uvicorn.run('app.main:app', host=os.environ.get('CONTENT_MAKER_HOST',os.environ.get('HOST','127.0.0.1')), port=int(os.environ.get('CONTENT_MAKER_PORT',os.environ.get('PORT','3100'))), access_log=False)
+    from app.deployment import runtime_config, DeploymentConfigurationError
+    try:
+        settings = runtime_config()
+    except DeploymentConfigurationError as error:
+        raise SystemExit(str(error)) from None
+    uvicorn.run('app.main:app', **settings)

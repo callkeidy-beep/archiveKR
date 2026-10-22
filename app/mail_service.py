@@ -1,6 +1,7 @@
 """Server-only encrypted Daum settings and authenticated, read-only connection probes.
 
-No app password is accepted by HTTP, returned by an API, or logged. The local
+App passwords are accepted only by authenticated HTTPS account registration,
+never returned by an API or logged. The local
 fallback key protects file contents, not a fully compromised operating system.
 """
 from __future__ import annotations
@@ -105,6 +106,12 @@ def _cipher(create=False) -> Fernet:
         external = os.environ.get('CONTENT_MAKER_ENCRYPTION_KEY')
         if external:
             return Fernet(external.encode('ascii'))
+        # Managed platforms generate a high-entropy opaque secret rather than a
+        # Fernet-format key. Never use a human password as this master secret.
+        generated = os.environ.get('CONTENT_MAKER_ENCRYPTION_SECRET')
+        if generated:
+            if not 32 <= len(generated) <= 4096: raise ValueError('invalid_master_secret')
+            return Fernet(base64.urlsafe_b64encode(hashlib.sha256(generated.encode('utf-8')).digest()))
         key_path = mail_dir() / 'key'
         if key_path.is_symlink(): raise MailConfigurationError('invalid_storage')
         if not key_path.exists():
@@ -154,16 +161,20 @@ def _password_matches(password: str, record: dict) -> bool:
         return False
 
 
-def configure_account(username: str, app_password: str, admin_password: str, folders: list[str]) -> None:
-    """CLI-only configuration entry point; never expose it through a route."""
+def _validate_mail_account(username: str, app_password: str, folders: list[str]) -> None:
     if not isinstance(username, str) or not username.strip() or len(username) > 254 or any(c in username for c in '\r\n\x00'):
         raise ValueError('접속용 아이디를 확인하세요.')
     if not isinstance(app_password, str) or not app_password or len(app_password) > 1024 or any(c in app_password for c in '\r\n\x00'):
         raise ValueError('앱 비밀번호를 확인하세요.')
-    if not isinstance(admin_password, str) or len(admin_password) < 12 or len(admin_password) > 1024:
-        raise ValueError('관리자 비밀번호는 12자 이상이어야 합니다.')
     if not isinstance(folders, list) or not 1 <= len(folders) <= 10 or any(not isinstance(f, str) or not f.strip() or len(f)>200 or any(c in f for c in '\r\n\x00') for f in folders):
         raise ValueError('읽기 시험할 폴더 이름을 1~10개 지정하세요.')
+
+
+def configure_account(username: str, app_password: str, admin_password: str, folders: list[str]) -> None:
+    """Interactive CLI configuration; HTTPS account save preserves the admin hash."""
+    _validate_mail_account(username, app_password, folders)
+    if not isinstance(admin_password, str) or len(admin_password) < 12 or len(admin_password) > 1024:
+        raise ValueError('관리자 비밀번호는 12자 이상이어야 합니다.')
     state = {'version':1, 'revision':secrets.token_hex(24), 'provider':'daum',
              'username':username.strip(), 'appPassword':app_password,
              'folders':list(dict.fromkeys(f.strip() for f in folders)),
@@ -242,6 +253,7 @@ def _session(request: Request) -> tuple[dict, dict]:
 
 
 def _masked_username(username: str) -> str:
+    if not username: return '미설정'
     if '@' in username:
         local, domain = username.rsplit('@', 1)
         return local[:1] + '***@' + domain
@@ -273,14 +285,124 @@ def public_status(configuration: dict) -> dict:
         except (ValueError, TypeError, KeyError): pass
     fresh = bool(age is not None and 0 <= age < RESULT_FRESH_SECONDS)
     same_settings = bool(provider_valid and last and last.get('providerFingerprint') == fingerprint and last.get('configurationRevision') == configuration['revision'])
-    connected = bool(last and last.get('ok') is True and last.get('status') == 'connected' and fresh and same_settings)
+    configured = bool(configuration.get('username') and configuration.get('appPassword'))
+    connected = bool(configured and last and last.get('ok') is True and last.get('status') == 'connected' and fresh and same_settings)
     safe_last = {key:value for key,value in (last or {}).items() if key not in ('configurationRevision','providerFingerprint')} if last else None
-    return {'enabled':True, 'configured':True, 'provider':'daum',
+    return {'enabled':True, 'configured':configured, 'provider':'daum',
             'usernameMasked':_masked_username(configuration['username']), 'folders':configuration['folders'],
             'server':visible_server, 'lastTest':safe_last, 'connected':connected,
-            'status':'configuration_error' if not provider_valid else 'connected' if connected else 'test_failed' if last and fresh and same_settings and not last.get('ok') else 'test_required',
+            'status':'account_required' if not configured else 'configuration_error' if not provider_valid else 'connected' if connected else 'test_failed' if last and fresh and same_settings and not last.get('ok') else 'test_required',
             'testFresh':bool(fresh and same_settings), 'statusExpiresSeconds':RESULT_FRESH_SECONDS,
             'notice':'메일 서버 설정을 확인하세요.' if not provider_valid else '접속 시험만 수행합니다. 메일 본문 수집·폴링·발송은 아직 실행하지 않습니다.'}
+
+
+def _bootstrap_token() -> str | None:
+    value = os.environ.get('CONTENT_MAKER_SETUP_TOKEN', '')
+    return value if 32 <= len(value) <= 512 else None
+
+
+def _https_secret_guard(request: Request):
+    _transport_guard(request, mutation=True)
+    if request.url.scheme != 'https':
+        raise HTTPException(403, '비밀번호 등록은 허용된 HTTPS 서버에서만 가능합니다.')
+
+
+async def _strict_secret_json(request: Request, keys: set[str], max_bytes=8192) -> dict:
+    if request.headers.get('content-type','').split(';',1)[0].strip() != 'application/json':
+        raise HTTPException(415, 'JSON 요청만 허용합니다.')
+    buffer = bytearray()
+    async for chunk in request.stream():
+        buffer.extend(chunk)
+        if len(buffer) > max_bytes: raise HTTPException(413, '요청이 너무 큽니다.')
+    try:
+        value = json.loads(buffer)
+        if not isinstance(value, dict) or set(value) != keys: raise ValueError()
+        return value
+    except (ValueError, UnicodeError):
+        raise HTTPException(422, '입력 형식을 확인하세요. 비밀번호는 응답에 표시하지 않습니다.') from None
+
+
+def _setup_attempt(request: Request):
+    key = 'setup:' + (request.client.host if request.client else 'unknown')
+    now = time.monotonic()
+    with _state_lock:
+        attempts = [stamp for stamp in _attempts.get(key, []) if now-stamp < 600]
+        _attempts[key] = attempts
+        if len(attempts) >= 5:
+            raise HTTPException(429, '초기 설정 시도가 많습니다. 10분 뒤 다시 시도하세요.')
+        attempts.append(now)
+
+
+@router.get('/setup-status')
+def setup_status(request: Request):
+    _transport_guard(request)
+    # No private account metadata and no ciphertext decryption before login.
+    initialized = (mail_dir() / 'vault.enc').exists()
+    return {'initialized':initialized, 'setupAvailable':bool(not initialized and _bootstrap_token())}
+
+
+@router.post('/initialize')
+async def initialize(request: Request):
+    _https_secret_guard(request)
+    _setup_attempt(request)
+    value = await _strict_secret_json(request, {'setupToken','adminPassword','confirmPassword'})
+    configured_token = _bootstrap_token()
+    supplied = value.get('setupToken')
+    if not configured_token:
+        raise HTTPException(403, '초기 설정은 서버의 안전한 설정 코드가 준비된 경우에만 가능합니다.')
+    if not isinstance(supplied,str) or not 1 <= len(supplied) <= 512 or not hmac.compare_digest(supplied.encode(),configured_token.encode()):
+        logger.info('mail_initialization_denied')
+        raise HTTPException(403, '초기 설정 코드를 확인하세요.')
+    password, confirmation = value.get('adminPassword'), value.get('confirmPassword')
+    if not isinstance(password,str) or not 12 <= len(password) <= 1024 or not isinstance(confirmation,str) or not hmac.compare_digest(password.encode(),confirmation.encode()):
+        raise HTTPException(422, '관리자 비밀번호는 12자 이상이며 확인 입력과 같아야 합니다.')
+    if hmac.compare_digest(password.encode(),configured_token.encode()):
+        raise HTTPException(422, '관리자 비밀번호는 초기 설정 코드와 다르게 정하세요.')
+    record = await run_in_threadpool(password_hash,password)
+    state = {'version':1,'revision':secrets.token_hex(24),'provider':'daum',
+             'username':'','appPassword':'','folders':[], 'adminHash':record,'lastTest':None}
+    try:
+        with _state_lock, _vault_file_lock():
+            if (mail_dir() / 'vault.enc').exists():
+                raise HTTPException(409, '관리자 초기 설정이 이미 완료됐습니다. 로그인하세요.')
+            _save_configuration(state)
+            _sessions.clear()
+    except (MailConfigurationError,OSError):
+        raise HTTPException(503, '초기 설정을 안전하게 저장하지 못했습니다. 서버 설정을 확인하세요.') from None
+    logger.info('mail_administrator_initialized')
+    response = JSONResponse({'ok':True,'initialized':True})
+    response.headers['Cache-Control']='no-store'
+    return response
+
+
+@router.post('/account')
+async def save_account(request: Request):
+    _https_secret_guard(request)
+    _, configuration = _session(request)
+    value = await _strict_secret_json(request, {'username','appPassword','folders'})
+    try:
+        _validate_mail_account(value.get('username'),value.get('appPassword'),value.get('folders'))
+    except ValueError:
+        raise HTTPException(422, '접속용 아이디·앱 비밀번호·지정 폴더를 확인하세요.') from None
+    if await run_in_threadpool(_password_matches,value['appPassword'],configuration['adminHash']):
+        raise HTTPException(422, '메일 앱 비밀번호와 관리자 비밀번호는 다르게 설정하세요.')
+    state = {**configuration,'revision':secrets.token_hex(24),'username':value['username'].strip(),
+             'appPassword':value['appPassword'],'folders':list(dict.fromkeys(f.strip() for f in value['folders'])),
+             'lastTest':None}
+    try:
+        with _state_lock, _vault_file_lock():
+            latest = _configuration_or_error()
+            if not latest or latest['revision'] != configuration['revision']:
+                raise HTTPException(409, '다른 곳에서 설정이 변경됐습니다. 다시 로그인하세요.')
+            _save_configuration(state)
+            _sessions.clear()
+    except (MailConfigurationError,OSError):
+        raise HTTPException(503, '계정 설정을 안전하게 저장하지 못했습니다. 서버 설정을 확인하세요.') from None
+    logger.info('mail_account_saved_https')
+    response = JSONResponse({'ok':True,'requireRelogin':True})
+    response.delete_cookie(COOKIE,path='/api/mail',httponly=True,samesite='strict',secure=True)
+    response.headers['Cache-Control']='no-store'
+    return response
 
 
 @router.post('/login')
@@ -349,6 +471,8 @@ def status(request: Request):
 async def test_connection(request: Request):
     _transport_guard(request, mutation=True)
     _, configuration = _session(request)
+    if not configuration.get('username') or not configuration.get('appPassword'):
+        raise HTTPException(409, '다음 메일 계정을 먼저 등록하세요.')
     if request.headers.get('content-type','').split(';',1)[0].strip() != 'application/json':
         raise HTTPException(415, 'JSON 요청만 허용합니다.')
     buffer = bytearray()

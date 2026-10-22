@@ -13,7 +13,11 @@ GitHub Pages는 정적 샘플이라 실제 메일에 접속할 수 없습니다.
 - 수집 대상으로 사용할 `보도자료`, `제보` 폴더가 실제로 존재하는지 확인하거나 실제 폴더명(예: INBOX)으로 설정합니다.
 - 서버는 `imap.daum.net`, 포트993, SSL/TLS입니다. 사용자 제공 다음 메일 설정 화면에서 이 값을 확인했습니다. [다음 공식 서버 설정 안내](https://cs.daum.net/faq/service/43/category/9234/detail/24081)에서 imap.daum.net·SSL·993을 확인했습니다. [공식 인증 안내](https://cs.daum.net/faq/service/43/category/9234/detail/31143)는2025년1월2일부터2단계 인증과 앱 비밀번호가 필수라고 명시합니다. 문서 확인은 실제 계정 인증 성공을 의미하지 않습니다.
 
-## 서버에서 안전하게 설정
+## 휴대폰에서 설정
+
+휴대폰만 사용하는 경우 [모바일 서버 배포 안내](mobile-deployment.md)를 따릅니다. 본인 HTTPS 서버에서 일회용 설정 코드로 관리자 등록을 마친 뒤 로그인하고 다음 계정을 등록합니다. 일반 HTTP와 공개 GitHub Pages에는 앱 비밀번호를 입력하지 않습니다.
+
+## 서버 터미널에서 안전하게 설정
 
 ```sh
 npm run setup
@@ -25,11 +29,11 @@ npm run dev
 
 계정·앱 비밀번호·시험 결과는 `.local/mail`의 암호화 저장소에 보관합니다(디렉터리0700·파일0600). 관리자 비밀번호는 scrypt 해시로 저장합니다. 기본 로컬 모드의 암호화 키 파일도 같은 개인 디렉터리에 두므로 **디스크 전체가 유출되면 암호화만으로 보호되지 않습니다**. 운영 배포에서는 `CONTENT_MAKER_ENCRYPTION_KEY`를 별도 비밀 저장소/환경변수로 주입하고 암호문과 분리합니다. `.env`를 쓰면 파일 권한0600과 디스크 암호화를 적용하세요. 키를 잃으면 암호화 저장소를 복원할 수 없습니다.
 
-외부 키는 서버에서 `cryptography.fernet.Fernet.generate_key()`로 생성하는32바이트 URL-safe Base64 형식입니다. 키는 비밀이며 채팅/화면/로그/Git/공개 빌드에 넣지 않습니다. `.env.example`에는 값 없이 이름만 기록합니다. 안전하게 주입한 환경값은 `.env`가 덮어쓰지 않습니다. 앱 비밀번호의 평문 `.env` 저장은 지원하지 않습니다.
+직접 지정하는 `CONTENT_MAKER_ENCRYPTION_KEY`는 서버에서 `cryptography.fernet.Fernet.generate_key()`로 생성하는32바이트 URL-safe Base64 형식입니다. Render 배포는 대신 자동 생성 난수 `CONTENT_MAKER_ENCRYPTION_SECRET`을 별도 환경변수로 보관하고 SHA256으로 Fernet 키를 유도합니다. 기존 ENCRYPTION_KEY가 있으면 그것을 우선하므로 이미 보관 중인 키를 다른 변수로 바꾸지 않습니다. 키는 비밀이며 채팅/화면/로그/Git/공개 빌드에 넣지 않습니다. `.env.example`에는 값 없이 이름만 기록합니다. 안전하게 주입한 환경값은 `.env`가 덮어쓰지 않습니다. 앱 비밀번호의 평문 `.env` 저장은 지원하지 않습니다.
 
 ## 관리자 로그인과 시험 결과
 
-서버 화면에서 관리자 비밀번호로 로그인하고 ‘접속 시험’을 누릅니다. 앱 비밀번호를 웹 화면에 다시 입력하지 않습니다. 세션은 HttpOnly·SameSite 쿠키로 관리하고 만료됩니다. 원격 접속은 HTTPS와 허용 호스트 설정이 필요합니다. 기본은 로컬 HTTP만 허용합니다.
+서버 화면에서 관리자 비밀번호로 로그인하고 ‘접속 시험’을 누릅니다. CLI로 설정했다면 앱 비밀번호를 웹 화면에 다시 입력할 필요는 없습니다. 모바일 신규 등록·계정 변경은 인증된 본인 HTTPS 서버 화면에서만 제공합니다. 세션은 HttpOnly·SameSite 쿠키로 관리하고 만료됩니다. 원격 접속은 HTTPS와 허용 호스트 설정이 필요합니다. 기본은 로컬 HTTP만 허용합니다.
 
 시험은 SSL 인증서 검증 → LOGIN → CAPABILITY → 지정 폴더 LIST/EXAMINE/STATUS → LOGOUT 순서입니다. 읽기 전용 EXAMINE만 쓰고 FETCH/STORE/이동/삭제/SMTP를 호출하지 않습니다. 한글 폴더명은 modified UTF-7로 인코딩합니다. IDLE은 서버의 광고 여부만 표시하고 실제 IDLE 동작을 시험했다고 표시하지 않습니다.
 

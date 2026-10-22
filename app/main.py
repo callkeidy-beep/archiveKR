@@ -16,7 +16,7 @@ from pydantic import BaseModel, Field, ConfigDict
 
 from app.domain import ROOT, bootstrap, load_sources
 
-app = FastAPI(title='콘텐츠메이커 엔진', version='0.2.0')
+app = FastAPI(title='콘텐츠메이커 엔진', version='0.3.0')
 
 @app.exception_handler(RequestValidationError)
 async def safe_validation_error(request: Request, exc: RequestValidationError):

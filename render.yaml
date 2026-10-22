@@ -1,0 +1,32 @@
+# Creates a PAID always-on service only when the owner confirms in Render.
+# No server is created by committing this file. Never replace generated values with real secrets here.
+services:
+  - type: web
+    name: content-maker-engine
+    runtime: docker
+    plan: starter
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    autoDeployTrigger: commit
+    disk:
+      name: content-maker-data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: CONTENT_MAKER_MODE
+        value: sample
+      - key: CONTENT_MAKER_HOST
+        value: 0.0.0.0
+      - key: CONTENT_MAKER_DB
+        value: /data/content-maker.sqlite3
+      - key: CONTENT_MAKER_MAIL_DIR
+        value: /data/mail
+      - key: CONTENT_MAKER_SETUP_TOKEN
+        generateValue: true
+      - key: CONTENT_MAKER_ENCRYPTION_SECRET
+        generateValue: true
+      - key: FORWARDED_ALLOW_IPS
+        value: '*'
+      - key: CONTENT_MAKER_PROXY_ISOLATED
+        value: 'true'

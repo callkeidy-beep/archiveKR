@@ -28,3 +28,6 @@ Python3.12+와 Node24+를 사용한다. 저장소 루트에서 `npm run setup`, 
 
 ## 다음 메일 접속 시험
 `npm run mail:setup`은 서버 대화식CLI이며 접속용ID·폴더·앱 비밀번호·별도관리자 비밀번호를 암호화 저장한다. 외부마스터키 CONTENT_MAKER_ENCRYPTION_KEY를 .env/비밀저장소로 쓸 수 있고, 로컬은0700디렉터리의0600키파일을 사용한다. 같은 디스크fallback은 OS전체유출을 방어한다고 주장하지 않는다. 공개 Pages는 정적샘플로 메일API/비밀번호폼을 실행하지 않는다. /api/mail/*는 관리자세션·Origin·TLS/로컬주소를 검사한다. 성공표시는 최신실제SSL로그인·모든지정폴더EXAMINE성공·계정/공급자설정동일시에만 허용한다. 프로브테스트는 fakeIMAP이며 실계정성공과 구분한다. 로그에ID·비밀번호·본문·서버예외전문을 남기지 않는다.
+
+## 모바일 HTTPS 등록
+RenderBlueprint render.yaml은 배포 준비이며 유료 서버를 자동 개설하지 않는다. 본인HTTPS서버의 /api/mail/setup-status는 초기화 여부만 공개하고, /initialize는 플랫폼의 일회용 SETUP_TOKEN과 새관리자암호를 검사한다. 초기화후추가등록불가. 관리자로그인후 /account가 다음계정/앱비밀번호를 암호화저장하고 기존세션/시험결과를 초기화한다. 모든 비밀번호 등록은 HTTPS-only·정확한Origin·호스트검사를 유지한다. 공개Pages는 STATIC이라 계정폼/메일API실행금지. 플랫폼 ENCRYPTION_SECRET은 자동생성 난수이며 SHA256으로Fernet키를유도하고 기존 ENCRYPTION_KEY와별개옵션이다. 보관된암호문을쓰는동안해당키를바꾸지않는다.

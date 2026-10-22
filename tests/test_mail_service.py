@@ -22,7 +22,7 @@ class MailServiceTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.folder = Path(self.temp.name) / 'mail'
-        self.environment = patch.dict(os.environ, {'CONTENT_MAKER_MAIL_DIR':str(self.folder), 'CONTENT_MAKER_ENCRYPTION_KEY':'', 'CONTENT_MAKER_TRUSTED_HOSTS':'','CONTENT_MAKER_TRUSTED_HTTP_PEERS':''})
+        self.environment = patch.dict(os.environ, {'CONTENT_MAKER_MAIL_DIR':str(self.folder), 'CONTENT_MAKER_ENCRYPTION_KEY':'','CONTENT_MAKER_ENCRYPTION_SECRET':'', 'CONTENT_MAKER_TRUSTED_HOSTS':'','CONTENT_MAKER_TRUSTED_HTTP_PEERS':''})
         self.environment.start()
         self.username = 'editor@example.test'
         self.app_password = 'SECRET-DAUM-APP-PASSWORD'
@@ -68,6 +68,25 @@ class MailServiceTests(unittest.TestCase):
             self.assertTrue(service.load_configuration())
         with patch.dict(os.environ,{'CONTENT_MAKER_MAIL_DIR':str(other),'CONTENT_MAKER_ENCRYPTION_KEY':Fernet.generate_key().decode()}):
             with self.assertRaises(service.MailConfigurationError):service.load_configuration()
+
+    def test_platform_generated_master_secret_and_key_precedence(self):
+        other=Path(self.temp.name)/'generated-master'
+        generated='fixture-high-entropy-platform-secret-more-than-32-characters'
+        with patch.dict(os.environ,{'CONTENT_MAKER_MAIL_DIR':str(other),'CONTENT_MAKER_ENCRYPTION_KEY':'','CONTENT_MAKER_ENCRYPTION_SECRET':generated}):
+            service.configure_account(self.username,self.app_password,self.admin_password,['INBOX'])
+            self.assertFalse((other/'key').exists())
+            self.assertEqual(service.load_configuration()['username'],self.username)
+            for value in [generated,self.app_password,self.username]:self.assertNotIn(value.encode(),(other/'vault.enc').read_bytes())
+            with patch.dict(os.environ,{'CONTENT_MAKER_ENCRYPTION_SECRET':'a-different-platform-secret-longer-than-32'}):
+                with self.assertRaises(service.MailConfigurationError):service.load_configuration()
+            with patch.dict(os.environ,{'CONTENT_MAKER_ENCRYPTION_SECRET':'too-short'}):
+                with self.assertRaises(service.MailConfigurationError):service.load_configuration()
+        explicit=Path(self.temp.name)/'explicit-master'
+        key=Fernet.generate_key().decode()
+        with patch.dict(os.environ,{'CONTENT_MAKER_MAIL_DIR':str(explicit),'CONTENT_MAKER_ENCRYPTION_KEY':key,'CONTENT_MAKER_ENCRYPTION_SECRET':'short'}):
+            service.configure_account(self.username,self.app_password,self.admin_password,['INBOX'])
+            with patch.dict(os.environ,{'CONTENT_MAKER_ENCRYPTION_SECRET':'another-invalid-short-value'}):
+                self.assertEqual(service.load_configuration()['username'],self.username)
 
     def test_authentication_cookie_and_masked_status(self):
         self.assertEqual(self.client.get('/api/mail/status').status_code,401)
@@ -280,6 +299,127 @@ class MailServiceTests(unittest.TestCase):
         result=self.client.get('/api/mail/status')
         self.assertEqual(result.status_code,503)
         self.assertNotIn('Traceback',result.text)
+
+
+class MobileMailSetupTests(unittest.TestCase):
+    def setUp(self):
+        self.temp=tempfile.TemporaryDirectory()
+        self.folder=Path(self.temp.name)/'mail'
+        self.token='fixture-single-use-setup-token-with-more-than-32-chars'
+        self.password='fixture-new-admin-password-2026'
+        self.environment=patch.dict(os.environ,{'CONTENT_MAKER_MAIL_DIR':str(self.folder),'CONTENT_MAKER_ENCRYPTION_KEY':'','CONTENT_MAKER_ENCRYPTION_SECRET':'','CONTENT_MAKER_TRUSTED_HOSTS':'editor.example.test','CONTENT_MAKER_SETUP_TOKEN':self.token})
+        self.environment.start()
+        with service._state_lock:
+            service._sessions.clear();service._attempts.clear()
+        self.app=FastAPI();self.app.include_router(service.router)
+        self.client=TestClient(self.app,base_url='https://editor.example.test',client=('203.0.113.2',50000))
+        self.origin={'Origin':'https://editor.example.test'}
+
+    def tearDown(self):
+        self.client.close()
+        with service._state_lock:
+            service._sessions.clear();service._attempts.clear()
+        self.environment.stop();self.temp.cleanup()
+
+    def initialize(self,client=None):
+        return (client or self.client).post('/api/mail/initialize',json={'setupToken':self.token,'adminPassword':self.password,'confirmPassword':self.password},headers=self.origin)
+
+    def login(self,client=None):
+        result=(client or self.client).post('/api/mail/login',json={'password':self.password},headers=self.origin)
+        self.assertEqual(result.status_code,200,result.text)
+        return result
+
+    def test_setup_status_has_no_account_metadata_or_token(self):
+        result=self.client.get('/api/mail/setup-status')
+        self.assertEqual(result.json(),{'initialized':False,'setupAvailable':True})
+        self.assertNotIn(self.token,result.text)
+        self.assertFalse(self.folder.exists())
+        with patch.dict(os.environ,{'CONTENT_MAKER_SETUP_TOKEN':''}):
+            self.assertEqual(self.client.get('/api/mail/setup-status').json(),{'initialized':False,'setupAvailable':False})
+
+    def test_initialize_creates_only_admin_and_does_not_auto_login(self):
+        result=self.initialize();self.assertEqual(result.status_code,200,result.text)
+        self.assertNotIn('set-cookie',result.headers)
+        state=service.load_configuration();self.assertEqual(state['username'],'');self.assertEqual(state['appPassword'],'')
+        self.assertNotIn(self.password,json.dumps(state))
+        self.assertEqual(self.client.get('/api/mail/status').status_code,401)
+        self.login();status=self.client.get('/api/mail/status').json()
+        self.assertFalse(status['configured']);self.assertFalse(status['connected']);self.assertEqual(status['usernameMasked'],'미설정')
+        self.assertEqual(self.client.post('/api/mail/test',json={},headers=self.origin).status_code,409)
+        self.assertEqual(self.client.get('/api/mail/setup-status').json(),{'initialized':True,'setupAvailable':False})
+
+    def test_initializer_is_one_time_even_if_token_is_still_configured(self):
+        self.assertEqual(self.initialize().status_code,200)
+        before=service.load_configuration()
+        result=self.initialize();self.assertEqual(result.status_code,409)
+        self.assertEqual(service.load_configuration(),before)
+        for value in (self.token,self.password):self.assertNotIn(value,result.text)
+
+    def test_concurrent_initializers_create_one_administrator(self):
+        from concurrent.futures import ThreadPoolExecutor
+        def work(_):
+            with TestClient(self.app,base_url='https://editor.example.test',client=('203.0.113.2',50000)) as client:
+                return self.initialize(client).status_code
+        with ThreadPoolExecutor(max_workers=2) as pool:codes=list(pool.map(work,range(2)))
+        self.assertEqual(sorted(codes),[200,409])
+        self.login()
+
+    def test_password_registration_requires_https_trusted_host_and_origin(self):
+        payload={'setupToken':self.token,'adminPassword':self.password,'confirmPassword':self.password}
+        with TestClient(self.app,base_url='http://127.0.0.1',client=('127.0.0.1',50000)) as local:
+            self.assertEqual(local.post('/api/mail/initialize',json=payload,headers={'Origin':'http://127.0.0.1'}).status_code,403)
+            self.assertEqual(local.post('/api/mail/account',json={'username':'a','appPassword':'b','folders':['INBOX']},headers={'Origin':'http://127.0.0.1'}).status_code,403)
+        self.assertEqual(self.client.post('/api/mail/initialize',json=payload,headers={'Origin':'https://evil.example.test'}).status_code,403)
+        self.assertEqual(self.client.post('/api/mail/initialize',json=payload,headers={'Origin':'https://editor.example.test','Host':'evil.example.test'}).status_code,403)
+        self.assertFalse((self.folder/'vault.enc').exists())
+
+    def test_missing_wrong_token_and_rate_limit_never_echo_values(self):
+        payload={'setupToken':'WRONG-SECRET-DO-NOT-ECHO','adminPassword':self.password,'confirmPassword':self.password}
+        with patch.dict(os.environ,{'CONTENT_MAKER_SETUP_TOKEN':''}):
+            result=self.client.post('/api/mail/initialize',json=payload,headers=self.origin);self.assertEqual(result.status_code,403)
+        for _ in range(4):
+            result=self.client.post('/api/mail/initialize',json=payload,headers=self.origin)
+            self.assertEqual(result.status_code,403);self.assertNotIn(payload['setupToken'],result.text);self.assertNotIn(self.password,result.text)
+        self.assertEqual(self.initialize().status_code,429)
+        self.assertFalse((self.folder/'vault.enc').exists())
+
+    def test_invalid_initialize_payload_does_not_create_state(self):
+        for payload in [[],{'setupToken':self.token,'adminPassword':self.password,'confirmPassword':'DO-NOT-ECHO'}, {'setupToken':self.token,'adminPassword':self.password,'confirmPassword':self.password,'extra':'DO-NOT-ECHO'}]:
+            result=self.client.post('/api/mail/initialize',json=payload,headers=self.origin)
+            self.assertEqual(result.status_code,422);self.assertNotIn('DO-NOT-ECHO',result.text);self.assertNotIn(self.token,result.text)
+        result=self.client.post('/api/mail/initialize',content='X'*9000,headers={**self.origin,'Content-Type':'application/json'})
+        self.assertEqual(result.status_code,413)
+        self.assertFalse((self.folder/'vault.enc').exists())
+
+    def test_authenticated_account_save_encrypts_and_invalidates_sessions(self):
+        self.assertEqual(self.initialize().status_code,200)
+        account={'username':'private-editor@example.test','appPassword':'private-APP-secret','folders':['보도자료','제보']}
+        self.assertEqual(self.client.post('/api/mail/account',json=account,headers=self.origin).status_code,401)
+        self.login();before=service.load_configuration()
+        with TestClient(self.app,base_url='https://editor.example.test',client=('203.0.113.3',50000)) as other:
+            self.login(other)
+            result=self.client.post('/api/mail/account',json=account,headers=self.origin)
+            self.assertEqual(result.status_code,200,result.text);self.assertEqual(result.json(),{'ok':True,'requireRelogin':True})
+            self.assertEqual(self.client.get('/api/mail/status').status_code,401);self.assertEqual(other.get('/api/mail/status').status_code,401)
+        state=service.load_configuration();self.assertEqual(state['adminHash'],before['adminHash']);self.assertNotEqual(state['revision'],before['revision']);self.assertIsNone(state['lastTest'])
+        for secret in [account['username'],account['appPassword'],self.password,self.token]:
+            self.assertNotIn(secret,result.text);self.assertNotIn(secret.encode(),(self.folder/'vault.enc').read_bytes())
+        self.login();status=self.client.get('/api/mail/status').json();self.assertTrue(status['configured']);self.assertFalse(status['connected'])
+
+    def test_account_change_resets_old_success_and_rejects_control_fields(self):
+        self.initialize();self.login()
+        account={'username':'editor@example.test','appPassword':'APP-secret','folders':['INBOX']}
+        result=self.client.post('/api/mail/account',json=account,headers=self.origin);self.assertEqual(result.status_code,200)
+        self.login()
+        with patch('app.mail_connector.probe_connection',return_value={'ok':True,'status':'connected','checkedAt':datetime.now(timezone.utc).isoformat(),'folders':[],'capabilities':{},'userMessage':'fixture'}):
+            self.assertTrue(self.client.post('/api/mail/test',json={},headers=self.origin).json()['connected'])
+        before=service.load_configuration()
+        for payload in [{**account,'adminPassword':'DO-NOT-ECHO'}, {**account,'appPassword':''}, {**account,'appPassword':self.password}, {**account,'folders':['line\nINBOX']}]:
+            result=self.client.post('/api/mail/account',json=payload,headers=self.origin)
+            self.assertEqual(result.status_code,422);self.assertNotIn('DO-NOT-ECHO',result.text)
+        self.assertEqual(service.load_configuration(),before)
+        self.assertEqual(self.client.post('/api/mail/account',json={**account,'folders':['새 폴더']},headers=self.origin).status_code,200)
+        self.assertIsNone(service.load_configuration()['lastTest']);self.assertFalse(service.public_status(service.load_configuration())['connected'])
 
 
 if __name__=='__main__': unittest.main()

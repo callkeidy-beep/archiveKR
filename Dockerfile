@@ -9,8 +9,9 @@ COPY --chown=engine:engine web ./web
 COPY --chown=engine:engine config ./config
 COPY --chown=engine:engine fixtures ./fixtures
 COPY --chown=engine:engine prompts ./prompts
-USER engine
+USER root
 EXPOSE 3100
 VOLUME ["/data"]
-HEALTHCHECK --interval=30s --timeout=3s CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:3100/api/health',timeout=2)"
+HEALTHCHECK --interval=30s --timeout=3s CMD python -c "import os,urllib.request; p=os.environ.get('PORT','3100') if os.environ.get('RENDER','').lower()=='true' else os.environ.get('CONTENT_MAKER_PORT','3100'); urllib.request.urlopen('http://127.0.0.1:'+p+'/api/health',timeout=2)"
+ENTRYPOINT ["python", "/app/app/container_entrypoint.py"]
 CMD ["python", "-m", "app.run"]
