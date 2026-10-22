@@ -25,6 +25,8 @@ async def safe_validation_error(request: Request, exc: RequestValidationError):
     return await request_validation_exception_handler(request,exc)
 
 app.include_router(mail_router)
+from app.outlook_service import router as outlook_router
+app.include_router(outlook_router)
 
 
 def database_path():
