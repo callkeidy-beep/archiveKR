@@ -55,7 +55,7 @@ mail:
       ssl: true
       folders: [보도자료, 제보]
       enabled: false
-      configuration_status: 공식 도움말·실제 접속 확인 전 초기 설정안
+      configuration_status: 공식 도움말 서버·SSL·포트·앱 비밀번호 확인 · 실제 계정 접속 미시험
 ai:
   provider: anthropic
   enabled: false

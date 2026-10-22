@@ -1,4 +1,4 @@
-"""Local/sample server. Real credentials are intentionally not read in phase one."""
+"""Sample newsroom plus separately authenticated, read-only Daum connection tests."""
 import os
 from pathlib import Path
 import sqlite3
@@ -9,11 +9,22 @@ from urllib.parse import urlsplit
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.exceptions import RequestValidationError
+from fastapi.exception_handlers import request_validation_exception_handler
+from app.mail_service import router as mail_router
 from pydantic import BaseModel, Field, ConfigDict
 
 from app.domain import ROOT, bootstrap, load_sources
 
-app = FastAPI(title='콘텐츠메이커 엔진', version='0.1.0')
+app = FastAPI(title='콘텐츠메이커 엔진', version='0.2.0')
+
+@app.exception_handler(RequestValidationError)
+async def safe_validation_error(request: Request, exc: RequestValidationError):
+    if request.url.path.startswith('/api/mail/'):
+        return JSONResponse({'detail':'메일 설정 요청 형식을 확인하세요.'},status_code=422)
+    return await request_validation_exception_handler(request,exc)
+
+app.include_router(mail_router)
 
 
 def database_path():
@@ -65,7 +76,7 @@ async def sample_request_policy(request: Request, call_next):
 
 @app.get('/api/health')
 def health():
-    return {'ok':True, 'name':'콘텐츠메이커 엔진', 'phase':1, 'mode':'sample', 'imapConnected':False, 'aiConnected':False, 'publishingEnabled':False}
+    return {'ok':True, 'name':'콘텐츠메이커 엔진', 'phase':1, 'mode':'sample', 'imapConnected':False, 'aiConnected':False, 'publishingEnabled':False,'mailConnectionTestAvailable':True}
 
 
 @app.get('/api/bootstrap')

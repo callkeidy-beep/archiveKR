@@ -1,7 +1,7 @@
 {
   "name": "content-maker-engine",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "scripts": {
     "setup": "bash scripts/setup.sh",
@@ -10,6 +10,7 @@
     "validate": "npm test",
     "build": ".venv/bin/python scripts/build_preview.py",
     "build:preview": "npm run build",
-    "docker:prepare": "bash scripts/prepare_docker.sh"
+    "docker:prepare": "bash scripts/prepare_docker.sh",
+    "mail:setup": ".venv/bin/python -m app.mail_setup"
   }
 }

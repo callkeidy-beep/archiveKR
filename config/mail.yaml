@@ -1,0 +1,12 @@
+# 서버·SSL·포트·앱 비밀번호 요구사항은 다음 공식 도움말로 확인했습니다.
+# 실제 계정 인증 성공과는 별개입니다. docs/mail-connection.md 참고.
+providers:
+  daum:
+    host: imap.daum.net
+    port: 993
+    ssl: true
+    enabled: true
+    folders: [보도자료, 제보]
+    timeout: 10
+    source: https://cs.daum.net/faq/service/43/category/9234/detail/24081
+    authentication_source: https://cs.daum.net/faq/service/43/category/9234/detail/31143
