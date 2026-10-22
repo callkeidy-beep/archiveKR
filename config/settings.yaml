@@ -1,0 +1,74 @@
+project:
+  name: 콘텐츠메이커 엔진
+  slug: content-maker-engine
+  phase: 1
+  mode: sample
+publication:
+  default_medium: 무비스트
+  media: [무비스트]
+  reporter: 편집자
+  language: ko
+  ai_disclosure: 'AI 활용: 시스템 보조 자료이며 편집자의 사실 확인이 필요합니다.'
+  auto_publish: false
+categories: [영화, 공연, 전시, 방송, 기업, 정책, 지역, 기타]
+recommendations:
+  count: 12
+  exploration_count: 2
+  preferred_categories: [영화, 공연, 전시, 방송]
+  timezone: Asia/Seoul
+  daily_time: '07:00'
+  scheduler_enabled: false
+weights:
+  timeliness: 20
+  impact: 20
+  rarity: 10
+  fit: 20
+  visuals: 10
+  embargo: 5
+  followup: 15
+  duplication: 15
+privacy:
+  mask_tipster_before_ai: true
+  encrypted_originals_required: true
+  log_full_body: false
+safety:
+  restricted_categories: [재난, 사고, 범죄, 선거]
+  human_approval_required: true
+mail:
+  polling_minutes: 10
+  enabled: false
+  idle_enabled: false
+  credentials_verified: false
+  providers:
+    - id: naver
+      label: 네이버 메일
+      host: imap.naver.com
+      port: 993
+      ssl: true
+      folders: [보도자료, 제보]
+      enabled: false
+      configuration_status: 공식 도움말·실제 접속 확인 전 초기 설정안
+    - id: daum
+      label: 다음 메일
+      host: imap.daum.net
+      port: 993
+      ssl: true
+      folders: [보도자료, 제보]
+      enabled: false
+      configuration_status: 공식 도움말·실제 접속 확인 전 초기 설정안
+ai:
+  provider: anthropic
+  enabled: false
+  alternative_providers: [openai_compatible]
+backup:
+  enabled: false
+  timezone: Asia/Seoul
+  schedule: '월요일 03:00'
+  retain_weeks: 8
+  external_provider: null
+cards:
+  enabled: false
+  default_ratio: '1:1'
+  allowed_ratios: ['1:1', '4:5']
+  max_slides: 10
+  template: null

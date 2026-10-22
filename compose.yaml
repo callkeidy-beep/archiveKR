@@ -1,0 +1,15 @@
+services:
+  engine:
+    build: .
+    ports:
+      - '127.0.0.1:3100:3100'
+    environment:
+      CONTENT_MAKER_MODE: sample
+      CONTENT_MAKER_DB: /data/content-maker.sqlite3
+      CONTENT_MAKER_HOST: 0.0.0.0
+      CONTENT_MAKER_PORT: '3100'
+    volumes:
+      - engine-data:/data
+    restart: unless-stopped
+volumes:
+  engine-data:

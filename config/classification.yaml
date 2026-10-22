@@ -1,0 +1,12 @@
+classification:
+  method: keyword_rules
+  fallback: 기타
+  keywords:
+    영화: [영화, 극장, 상영, 배급, 관객, cinema, film]
+    공연: [공연, 낭독극, 음악실, 실내악, 연주, concert]
+    전시: [전시, 미술, 기록관, 체험전, gallery, exhibition, tactile]
+    방송: [방송, 라디오, 다큐, 편성, radio, broadcast]
+    기업: [기업, 기술, 유통, 포장재, 단말, company]
+    정책: [정책, 선거, 공공데이터, public-data, timetable, 예산]
+    지역: [마을, 도서관, 대피, 재난교육, local]
+    기타: [제보, tip]

@@ -1,0 +1,1017 @@
+[
+  {
+    "id": "sample-01",
+    "messageId": "<sample-01@example.test>",
+    "isSample": true,
+    "subject": "[샘플] 새빛영화주간, 다음 달 12편 상영",
+    "sender": {
+      "organization": "가상 새빛영화주간 사무국",
+      "email": "press01@example.test"
+    },
+    "accountId": "naver-sample",
+    "receivedAt": "2026-10-22T05:00:00+09:00",
+    "category": "영화",
+    "topic": "지역 독립영화 상영",
+    "language": "ko",
+    "paragraphs": [
+      {
+        "id": "p1",
+        "text": "이 자료는 기능 확인용 샘플이다. 가상 새빛영화주간 사무국은 2026년 11월 6일부터 8일까지 새빛시민극장에서 영화주간을 연다고 10월 22일 알렸다."
+      },
+      {
+        "id": "p2",
+        "text": "상영작은 장편 4편과 단편 8편 등 모두 12편이다. 관객과의 대화는 3회이며, 행사장별 좌석 수와 예상 관객 수는 자료에 포함하지 않았다."
+      },
+      {
+        "id": "p3",
+        "text": "관람 신청은 10월 26일부터 받는다. 작품별 상영 시간표는 별도 PDF에 정리했다는 설정이며, 이 샘플에는 실제 PDF 파일을 첨부하지 않았다."
+      }
+    ],
+    "body": "이 자료는 기능 확인용 샘플이다. 가상 새빛영화주간 사무국은 2026년 11월 6일부터 8일까지 새빛시민극장에서 영화주간을 연다고 10월 22일 알렸다.\n\n상영작은 장편 4편과 단편 8편 등 모두 12편이다. 관객과의 대화는 3회이며, 행사장별 좌석 수와 예상 관객 수는 자료에 포함하지 않았다.\n\n관람 신청은 10월 26일부터 받는다. 작품별 상영 시간표는 별도 PDF에 정리했다는 설정이며, 이 샘플에는 실제 PDF 파일을 첨부하지 않았다.",
+    "photos": [
+      {
+        "id": "photo-sample-01",
+        "caption": "가상의 영화주간 포스터",
+        "credit": "샘플 제공처",
+        "usageStatus": "unverified",
+        "source": "샘플 메일의 사진 목록",
+        "conditions": "샘플 메타데이터만 있음. 실제 이미지 파일과 사용 허가 없음.",
+        "isSample": true
+      }
+    ],
+    "attachments": [
+      {
+        "name": "샘플_새빛영화주간_보도자료.pdf",
+        "kind": "pdf",
+        "status": "sample_metadata",
+        "isSample": true
+      }
+    ],
+    "embargoUntil": null,
+    "restricted": false,
+    "contact": {
+      "name": "샘플 홍보담당",
+      "email": "press01@example.test"
+    },
+    "sampleNotice": "허구의 기관·자료로 만든 샘플입니다. 실제 메일 수집, 첨부 추출 또는 사진 사용 허가를 의미하지 않습니다."
+  },
+  {
+    "id": "sample-02",
+    "messageId": "<sample-02@example.test>",
+    "isSample": true,
+    "subject": "[샘플] 마루극장, 관객과의 대화 4회 편성",
+    "sender": {
+      "organization": "가상 마루극장",
+      "email": "press02@example.test"
+    },
+    "accountId": "daum-sample",
+    "receivedAt": "2026-10-22T05:05:00+09:00",
+    "category": "영화",
+    "topic": "지역 독립영화 상영",
+    "language": "ko",
+    "paragraphs": [
+      {
+        "id": "p1",
+        "text": "이 자료는 샘플이다. 가상 마루극장은 2026년 10월 30일부터 11월 1일까지 독립영화 6편을 상영한다고 10월 22일 알렸다."
+      },
+      {
+        "id": "p2",
+        "text": "감독과 관객이 만나는 대화 프로그램은 4회다. 전체 좌석 가운데 회차별 예매 비중과 초청 감독 명단은 발표하지 않았다."
+      },
+      {
+        "id": "p3",
+        "text": "극장은 프로그램표를 이미지 2장으로 제공했다는 설정이다. 이미지 원본은 없으며 사진 사용 조건은 확인되지 않았다."
+      }
+    ],
+    "body": "이 자료는 샘플이다. 가상 마루극장은 2026년 10월 30일부터 11월 1일까지 독립영화 6편을 상영한다고 10월 22일 알렸다.\n\n감독과 관객이 만나는 대화 프로그램은 4회다. 전체 좌석 가운데 회차별 예매 비중과 초청 감독 명단은 발표하지 않았다.\n\n극장은 프로그램표를 이미지 2장으로 제공했다는 설정이다. 이미지 원본은 없으며 사진 사용 조건은 확인되지 않았다.",
+    "photos": [
+      {
+        "id": "photo-sample-02",
+        "caption": "가상 극장 프로그램표",
+        "credit": "샘플 제공처",
+        "usageStatus": "unverified",
+        "source": "샘플 메일의 사진 목록",
+        "conditions": "샘플 메타데이터만 있음. 실제 이미지 파일과 사용 허가 없음.",
+        "isSample": true
+      }
+    ],
+    "attachments": [
+      {
+        "name": "샘플_프로그램표.png",
+        "kind": "image",
+        "status": "manual_review",
+        "isSample": true
+      }
+    ],
+    "embargoUntil": null,
+    "restricted": false,
+    "contact": {
+      "name": "샘플 홍보담당",
+      "email": "press02@example.test"
+    },
+    "sampleNotice": "허구의 기관·자료로 만든 샘플입니다. 실제 메일 수집, 첨부 추출 또는 사진 사용 허가를 의미하지 않습니다."
+  },
+  {
+    "id": "sample-03",
+    "messageId": "<sample-02@example.test>",
+    "isSample": true,
+    "subject": "[샘플] 마루극장, 관객과의 대화 4회 편성",
+    "sender": {
+      "organization": "가상 마루극장",
+      "email": "press02@example.test"
+    },
+    "accountId": "naver-sample",
+    "receivedAt": "2026-10-22T05:10:00+09:00",
+    "category": "영화",
+    "topic": "지역 독립영화 상영",
+    "language": "ko",
+    "paragraphs": [
+      {
+        "id": "p1",
+        "text": "이 자료는 샘플이다. 가상 마루극장은 2026년 10월 30일부터 11월 1일까지 독립영화 6편을 상영한다고 10월 22일 알렸다."
+      },
+      {
+        "id": "p2",
+        "text": "감독과 관객이 만나는 대화 프로그램은 4회다. 전체 좌석 가운데 회차별 예매 비중과 초청 감독 명단은 발표하지 않았다."
+      },
+      {
+        "id": "p3",
+        "text": "극장은 프로그램표를 이미지 2장으로 제공했다는 설정이다. 이미지 원본은 없으며 사진 사용 조건은 확인되지 않았다."
+      }
+    ],
+    "body": "이 자료는 샘플이다. 가상 마루극장은 2026년 10월 30일부터 11월 1일까지 독립영화 6편을 상영한다고 10월 22일 알렸다.\n\n감독과 관객이 만나는 대화 프로그램은 4회다. 전체 좌석 가운데 회차별 예매 비중과 초청 감독 명단은 발표하지 않았다.\n\n극장은 프로그램표를 이미지 2장으로 제공했다는 설정이다. 이미지 원본은 없으며 사진 사용 조건은 확인되지 않았다.",
+    "photos": [
+      {
+        "id": "photo-sample-02",
+        "caption": "가상 극장 프로그램표",
+        "credit": "샘플 제공처",
+        "usageStatus": "unverified",
+        "source": "샘플 메일의 사진 목록",
+        "conditions": "샘플 메타데이터만 있음. 실제 이미지 파일과 사용 허가 없음.",
+        "isSample": true
+      }
+    ],
+    "attachments": [
+      {
+        "name": "샘플_프로그램표.png",
+        "kind": "image",
+        "status": "manual_review",
+        "isSample": true
+      }
+    ],
+    "embargoUntil": null,
+    "restricted": false,
+    "contact": {
+      "name": "샘플 홍보담당",
+      "email": "press02@example.test"
+    },
+    "sampleNotice": "허구의 기관·자료로 만든 샘플입니다. 실제 메일 수집, 첨부 추출 또는 사진 사용 허가를 의미하지 않습니다.",
+    "duplicateOf": "sample-02"
+  },
+  {
+    "id": "sample-04",
+    "messageId": "<sample-04@example.test>",
+    "isSample": true,
+    "subject": "[샘플] 서로영화재단, 자막·음성해설 상영 5회",
+    "sender": {
+      "organization": "가상 서로영화재단",
+      "email": "press04@example.test"
+    },
+    "accountId": "daum-sample",
+    "receivedAt": "2026-10-22T05:15:00+09:00",
+    "category": "영화",
+    "topic": "접근성 상영",
+    "language": "ko",
+    "paragraphs": [
+      {
+        "id": "p1",
+        "text": "이 자료는 샘플이다. 가상 서로영화재단은 2026년 11월 한 달 동안 자막과 음성해설을 갖춘 상영회를 5회 운영한다고 10월 22일 알렸다."
+      },
+      {
+        "id": "p2",
+        "text": "참여 극장은 2곳이며 상영작은 3편이다. 회차별 접근성 장비 수량과 관람 보조 인력 수는 공개하지 않았다."
+      },
+      {
+        "id": "p3",
+        "text": "재단은 접근성 안내문을 HWPX로 제공했다는 설정이다. 구체적인 관람 조건은 추가 확인이 필요하다."
+      }
+    ],
+    "body": "이 자료는 샘플이다. 가상 서로영화재단은 2026년 11월 한 달 동안 자막과 음성해설을 갖춘 상영회를 5회 운영한다고 10월 22일 알렸다.\n\n참여 극장은 2곳이며 상영작은 3편이다. 회차별 접근성 장비 수량과 관람 보조 인력 수는 공개하지 않았다.\n\n재단은 접근성 안내문을 HWPX로 제공했다는 설정이다. 구체적인 관람 조건은 추가 확인이 필요하다.",
+    "photos": [
+      {
+        "id": "photo-sample-04",
+        "caption": "가상 접근성 상영 안내",
+        "credit": "샘플 제공처",
+        "usageStatus": "unverified",
+        "source": "샘플 메일의 사진 목록",
+        "conditions": "샘플 메타데이터만 있음. 실제 이미지 파일과 사용 허가 없음.",
+        "isSample": true
+      }
+    ],
+    "attachments": [
+      {
+        "name": "샘플_접근성_안내.hwpx",
+        "kind": "hwpx",
+        "status": "sample_metadata",
+        "isSample": true
+      }
+    ],
+    "embargoUntil": null,
+    "restricted": false,
+    "contact": {
+      "name": "샘플 홍보담당",
+      "email": "press04@example.test"
+    },
+    "sampleNotice": "허구의 기관·자료로 만든 샘플입니다. 실제 메일 수집, 첨부 추출 또는 사진 사용 허가를 의미하지 않습니다."
+  },
+  {
+    "id": "sample-05",
+    "messageId": "<sample-05@example.test>",
+    "isSample": true,
+    "subject": "[샘플] [초판] 누리영화관, 9월 관객 집계 발표",
+    "sender": {
+      "organization": "가상 누리영화관",
+      "email": "press05@example.test"
+    },
+    "accountId": "naver-sample",
+    "receivedAt": "2026-10-22T05:20:00+09:00",
+    "category": "영화",
+    "topic": "극장 관객 집계",
+    "language": "ko",
+    "paragraphs": [
+      {
+        "id": "p1",
+        "text": "이 자료는 샘플 초판이다. 가상 누리영화관은 2026년 9월 관객이 2400명으로 집계됐다고 10월 22일 알렸다."
+      },
+      {
+        "id": "p2",
+        "text": "초판은 전체 상영 횟수를 80회로 기재했다. 이 자료는 뒤에 도착한 수정본에서 관객 수와 집계 범위를 바로잡는다."
+      },
+      {
+        "id": "p3",
+        "text": "초판 수치를 최신 통계로 사용하지 않도록 수정본 확인이 필요하다."
+      }
+    ],
+    "body": "이 자료는 샘플 초판이다. 가상 누리영화관은 2026년 9월 관객이 2400명으로 집계됐다고 10월 22일 알렸다.\n\n초판은 전체 상영 횟수를 80회로 기재했다. 이 자료는 뒤에 도착한 수정본에서 관객 수와 집계 범위를 바로잡는다.\n\n초판 수치를 최신 통계로 사용하지 않도록 수정본 확인이 필요하다.",
+    "photos": [],
+    "attachments": [
+      {
+        "name": "샘플_관객집계_초판.xlsx",
+        "kind": "xlsx",
+        "status": "sample_metadata",
+        "isSample": true
+      }
+    ],
+    "embargoUntil": null,
+    "restricted": false,
+    "contact": {
+      "name": "샘플 홍보담당",
+      "email": "press05@example.test"
+    },
+    "sampleNotice": "허구의 기관·자료로 만든 샘플입니다. 실제 메일 수집, 첨부 추출 또는 사진 사용 허가를 의미하지 않습니다.",
+    "version": 1,
+    "revisionGroup": "nuri-audience-202609",
+    "supersededBy": "sample-06"
+  },
+  {
+    "id": "sample-06",
+    "messageId": "<sample-06@example.test>",
+    "isSample": true,
+    "subject": "[샘플] [수정본] 누리영화관, 9월 유료 관객 2280명으로 정정",
+    "sender": {
+      "organization": "가상 누리영화관",
+      "email": "press06@example.test"
+    },
+    "accountId": "daum-sample",
+    "receivedAt": "2026-10-22T05:25:00+09:00",
+    "category": "영화",
+    "topic": "극장 관객 집계",
+    "language": "ko",
+    "paragraphs": [
+      {
+        "id": "p1",
+        "text": "이 자료는 샘플 수정본이다. 가상 누리영화관은 2026년 9월 유료 관객이 2280명이라고 10월 22일 정정했다. 초판의 2400명은 무료 초청 120명을 포함한 수치였다."
+      },
+      {
+        "id": "p2",
+        "text": "수정본의 상영 횟수는 80회로 초판과 같다. 유료 관객 2280명과 무료 초청 120명을 합하면 전체 입장 인원은 2400명이다."
+      },
+      {
+        "id": "p3",
+        "text": "같은 집계 기준을 적용한 전년 수치는 자료에 없다. 전년 대비 증감을 판단하려면 별도 확인이 필요하다."
+      }
+    ],
+    "body": "이 자료는 샘플 수정본이다. 가상 누리영화관은 2026년 9월 유료 관객이 2280명이라고 10월 22일 정정했다. 초판의 2400명은 무료 초청 120명을 포함한 수치였다.\n\n수정본의 상영 횟수는 80회로 초판과 같다. 유료 관객 2280명과 무료 초청 120명을 합하면 전체 입장 인원은 2400명이다.\n\n같은 집계 기준을 적용한 전년 수치는 자료에 없다. 전년 대비 증감을 판단하려면 별도 확인이 필요하다.",
+    "photos": [],
+    "attachments": [
+      {
+        "name": "샘플_관객집계_수정.xlsx",
+        "kind": "xlsx",
+        "status": "sample_text",
+        "isSample": true,
+        "text": "유료 관객 2280명, 무료 초청 120명, 상영 80회"
+      }
+    ],
+    "embargoUntil": null,
+    "restricted": false,
+    "contact": {
+      "name": "샘플 홍보담당",
+      "email": "press06@example.test"
+    },
+    "sampleNotice": "허구의 기관·자료로 만든 샘플입니다. 실제 메일 수집, 첨부 추출 또는 사진 사용 허가를 의미하지 않습니다.",
+    "version": 2,
+    "revisionGroup": "nuri-audience-202609",
+    "supersedes": "sample-05"
+  },
+  {
+    "id": "sample-07",
+    "messageId": "<sample-07@example.test>",
+    "isSample": true,
+    "subject": "[샘플] 바람공연소, 가을 낭독극 3개 작품 공개",
+    "sender": {
+      "organization": "가상 바람공연소",
+      "email": "press07@example.test"
+    },
+    "accountId": "naver-sample",
+    "receivedAt": "2026-10-22T05:30:00+09:00",
+    "category": "공연",
+    "topic": "지역 문화 접근성",
+    "language": "ko",
+    "paragraphs": [
+      {
+        "id": "p1",
+        "text": "이 자료는 샘플이다. 가상 바람공연소는 2026년 11월 13일부터 15일까지 가을 낭독극 3개 작품을 선보인다고 10월 22일 알렸다."
+      },
+      {
+        "id": "p2",
+        "text": "공연은 모두 6회이며 회차당 정원은 60명이다. 유료·무료 좌석 배분과 예매 수수료는 공개하지 않았다."
+      },
+      {
+        "id": "p3",
+        "text": "공연소는 작품 소개문을 DOCX로 제공했다는 설정이다. 관람 연령과 접근성 안내는 취재 확인 항목이다."
+      }
+    ],
+    "body": "이 자료는 샘플이다. 가상 바람공연소는 2026년 11월 13일부터 15일까지 가을 낭독극 3개 작품을 선보인다고 10월 22일 알렸다.\n\n공연은 모두 6회이며 회차당 정원은 60명이다. 유료·무료 좌석 배분과 예매 수수료는 공개하지 않았다.\n\n공연소는 작품 소개문을 DOCX로 제공했다는 설정이다. 관람 연령과 접근성 안내는 취재 확인 항목이다.",
+    "photos": [
+      {
+        "id": "photo-sample-07",
+        "caption": "가상 낭독극 연습 장면",
+        "credit": "샘플 제공처",
+        "usageStatus": "unverified",
+        "source": "샘플 메일의 사진 목록",
+        "conditions": "샘플 메타데이터만 있음. 실제 이미지 파일과 사용 허가 없음.",
+        "isSample": true
+      }
+    ],
+    "attachments": [
+      {
+        "name": "샘플_작품소개.docx",
+        "kind": "docx",
+        "status": "sample_metadata",
+        "isSample": true
+      }
+    ],
+    "embargoUntil": null,
+    "restricted": false,
+    "contact": {
+      "name": "샘플 홍보담당",
+      "email": "press07@example.test"
+    },
+    "sampleNotice": "허구의 기관·자료로 만든 샘플입니다. 실제 메일 수집, 첨부 추출 또는 사진 사용 허가를 의미하지 않습니다."
+  },
+  {
+    "id": "sample-08",
+    "messageId": "<sample-08@example.test>",
+    "isSample": true,
+    "subject": "[샘플] 도담음악실, 낮 시간 실내악 공연 4회",
+    "sender": {
+      "organization": "가상 도담음악실",
+      "email": "press08@example.test"
+    },
+    "accountId": "daum-sample",
+    "receivedAt": "2026-10-22T05:35:00+09:00",
+    "category": "공연",
+    "topic": "지역 문화 접근성",
+    "language": "ko",
+    "paragraphs": [
+      {
+        "id": "p1",
+        "text": "이 자료는 샘플이다. 가상 도담음악실은 2026년 11월 매주 수요일 오후 2시에 실내악 공연을 연다고 10월 22일 알렸다."
+      },
+      {
+        "id": "p2",
+        "text": "계획된 공연은 4회이고, 회차당 좌석은 40석이다. 운영비와 지원금 규모는 발표하지 않았다."
+      },
+      {
+        "id": "p3",
+        "text": "낮 공연을 편성한 이유와 실제 관객 구성의 변화는 추가 취재로 확인해야 한다."
+      }
+    ],
+    "body": "이 자료는 샘플이다. 가상 도담음악실은 2026년 11월 매주 수요일 오후 2시에 실내악 공연을 연다고 10월 22일 알렸다.\n\n계획된 공연은 4회이고, 회차당 좌석은 40석이다. 운영비와 지원금 규모는 발표하지 않았다.\n\n낮 공연을 편성한 이유와 실제 관객 구성의 변화는 추가 취재로 확인해야 한다.",
+    "photos": [
+      {
+        "id": "photo-sample-08",
+        "caption": "가상 실내악 공연장",
+        "credit": "샘플 제공처",
+        "usageStatus": "unverified",
+        "source": "샘플 메일의 사진 목록",
+        "conditions": "샘플 메타데이터만 있음. 실제 이미지 파일과 사용 허가 없음.",
+        "isSample": true
+      }
+    ],
+    "attachments": [],
+    "embargoUntil": null,
+    "restricted": false,
+    "contact": {
+      "name": "샘플 홍보담당",
+      "email": "press08@example.test"
+    },
+    "sampleNotice": "허구의 기관·자료로 만든 샘플입니다. 실제 메일 수집, 첨부 추출 또는 사진 사용 허가를 의미하지 않습니다."
+  },
+  {
+    "id": "sample-09",
+    "messageId": "<sample-09@example.test>",
+    "isSample": true,
+    "subject": "[샘플] 온빛미술실, 지역 기록 사진 30점 전시",
+    "sender": {
+      "organization": "가상 온빛미술실",
+      "email": "press09@example.test"
+    },
+    "accountId": "naver-sample",
+    "receivedAt": "2026-10-22T05:40:00+09:00",
+    "category": "전시",
+    "topic": "지역 기록 전시",
+    "language": "ko",
+    "paragraphs": [
+      {
+        "id": "p1",
+        "text": "이 자료는 샘플이다. 가상 온빛미술실은 2026년 11월 2일부터 29일까지 지역 기록 사진 30점을 전시한다고 10월 22일 알렸다."
+      },
+      {
+        "id": "p2",
+        "text": "전시는 1990년대와 2000년대 생활 모습을 다루며 무료로 운영된다. 작품별 촬영일과 소장 경위는 목록에 없다."
+      },
+      {
+        "id": "p3",
+        "text": "언론용 사진은 3점이라는 설정이나 실제 이미지 파일은 없다. 사진의 전재 조건과 촬영자 표기는 확인되지 않았다."
+      }
+    ],
+    "body": "이 자료는 샘플이다. 가상 온빛미술실은 2026년 11월 2일부터 29일까지 지역 기록 사진 30점을 전시한다고 10월 22일 알렸다.\n\n전시는 1990년대와 2000년대 생활 모습을 다루며 무료로 운영된다. 작품별 촬영일과 소장 경위는 목록에 없다.\n\n언론용 사진은 3점이라는 설정이나 실제 이미지 파일은 없다. 사진의 전재 조건과 촬영자 표기는 확인되지 않았다.",
+    "photos": [
+      {
+        "id": "photo-sample-09",
+        "caption": "가상 지역 기록 전시 안내",
+        "credit": "샘플 제공처",
+        "usageStatus": "hold",
+        "source": "샘플 메일의 사진 목록",
+        "conditions": "샘플 메타데이터만 있음. 실제 이미지 파일과 사용 허가 없음.",
+        "isSample": true
+      }
+    ],
+    "attachments": [
+      {
+        "name": "샘플_작품목록.pdf",
+        "kind": "pdf",
+        "status": "sample_metadata",
+        "isSample": true
+      }
+    ],
+    "embargoUntil": null,
+    "restricted": false,
+    "contact": {
+      "name": "샘플 홍보담당",
+      "email": "press09@example.test"
+    },
+    "sampleNotice": "허구의 기관·자료로 만든 샘플입니다. 실제 메일 수집, 첨부 추출 또는 사진 사용 허가를 의미하지 않습니다."
+  },
+  {
+    "id": "sample-10",
+    "messageId": "<sample-10@example.test>",
+    "isSample": true,
+    "subject": "[샘플] 나무기록관, 소리 아카이브 체험전 개최",
+    "sender": {
+      "organization": "가상 나무기록관",
+      "email": "press10@example.test"
+    },
+    "accountId": "daum-sample",
+    "receivedAt": "2026-10-22T05:45:00+09:00",
+    "category": "전시",
+    "topic": "지역 기록 전시",
+    "language": "ko",
+    "paragraphs": [
+      {
+        "id": "p1",
+        "text": "이 자료는 샘플이다. 가상 나무기록관은 2026년 11월 7일부터 12월 6일까지 소리 기록 체험전을 연다고 10월 22일 알렸다."
+      },
+      {
+        "id": "p2",
+        "text": "체험 구역은 4곳이며 공개 음원은 18개다. 음원별 저작권자와 녹음 참여자 동의 여부는 자료에 없다."
+      },
+      {
+        "id": "p3",
+        "text": "대용량 전시 사진을 내려받는 링크가 있다는 설정이다. 외부 링크는 자동으로 내려받지 않고 수동 확인 대상으로 남긴다."
+      }
+    ],
+    "body": "이 자료는 샘플이다. 가상 나무기록관은 2026년 11월 7일부터 12월 6일까지 소리 기록 체험전을 연다고 10월 22일 알렸다.\n\n체험 구역은 4곳이며 공개 음원은 18개다. 음원별 저작권자와 녹음 참여자 동의 여부는 자료에 없다.\n\n대용량 전시 사진을 내려받는 링크가 있다는 설정이다. 외부 링크는 자동으로 내려받지 않고 수동 확인 대상으로 남긴다.",
+    "photos": [],
+    "attachments": [
+      {
+        "name": "샘플_대용량_사진_링크",
+        "kind": "download_link",
+        "status": "manual_download_required",
+        "isSample": true
+      }
+    ],
+    "embargoUntil": null,
+    "restricted": false,
+    "contact": {
+      "name": "샘플 홍보담당",
+      "email": "press10@example.test"
+    },
+    "sampleNotice": "허구의 기관·자료로 만든 샘플입니다. 실제 메일 수집, 첨부 추출 또는 사진 사용 허가를 의미하지 않습니다.",
+    "downloadLinks": [
+      {
+        "url": "https://example.test/sample-exhibition-download",
+        "status": "manual_download_required",
+        "isSample": true
+      }
+    ]
+  },
+  {
+    "id": "sample-11",
+    "messageId": "<sample-11@example.test>",
+    "isSample": true,
+    "subject": "[샘플] 모아방송, 지역 창작자 다큐 4부작 편성",
+    "sender": {
+      "organization": "가상 모아방송",
+      "email": "press11@example.test"
+    },
+    "accountId": "naver-sample",
+    "receivedAt": "2026-10-22T05:50:00+09:00",
+    "category": "방송",
+    "topic": "지역 창작자 콘텐츠",
+    "language": "ko",
+    "paragraphs": [
+      {
+        "id": "p1",
+        "text": "이 자료는 샘플이다. 가상 모아방송은 지역 창작자를 다루는 다큐멘터리 4부작을 2026년 11월 5일부터 매주 목요일 방송한다고 10월 22일 알렸다."
+      },
+      {
+        "id": "p2",
+        "text": "회당 편성 시간은 30분이다. 제작비와 출연자 선정 기준은 공개하지 않았다."
+      },
+      {
+        "id": "p3",
+        "text": "방송 화면 사진은 홍보용 제공이라는 설명만 있으며, 온라인 카드뉴스 이용 범위는 추가 확인이 필요하다."
+      }
+    ],
+    "body": "이 자료는 샘플이다. 가상 모아방송은 지역 창작자를 다루는 다큐멘터리 4부작을 2026년 11월 5일부터 매주 목요일 방송한다고 10월 22일 알렸다.\n\n회당 편성 시간은 30분이다. 제작비와 출연자 선정 기준은 공개하지 않았다.\n\n방송 화면 사진은 홍보용 제공이라는 설명만 있으며, 온라인 카드뉴스 이용 범위는 추가 확인이 필요하다.",
+    "photos": [
+      {
+        "id": "photo-sample-11",
+        "caption": "가상 다큐멘터리 홍보 스틸",
+        "credit": "샘플 제공처",
+        "usageStatus": "unverified",
+        "source": "샘플 메일의 사진 목록",
+        "conditions": "샘플 메타데이터만 있음. 실제 이미지 파일과 사용 허가 없음.",
+        "isSample": true
+      }
+    ],
+    "attachments": [],
+    "embargoUntil": null,
+    "restricted": false,
+    "contact": {
+      "name": "샘플 홍보담당",
+      "email": "press11@example.test"
+    },
+    "sampleNotice": "허구의 기관·자료로 만든 샘플입니다. 실제 메일 수집, 첨부 추출 또는 사진 사용 허가를 의미하지 않습니다."
+  },
+  {
+    "id": "sample-12",
+    "messageId": "<sample-12@example.test>",
+    "isSample": true,
+    "subject": "[샘플] 솔빛라디오, 청소년 제작 프로그램 8회 공개",
+    "sender": {
+      "organization": "가상 솔빛라디오",
+      "email": "press12@example.test"
+    },
+    "accountId": "daum-sample",
+    "receivedAt": "2026-10-22T05:55:00+09:00",
+    "category": "방송",
+    "topic": "지역 창작자 콘텐츠",
+    "language": "ko",
+    "paragraphs": [
+      {
+        "id": "p1",
+        "text": "이 자료는 샘플이다. 가상 솔빛라디오는 청소년이 제작한 프로그램 8회를 2026년 10월 23일부터 공개한다고 10월 22일 알렸다."
+      },
+      {
+        "id": "p2",
+        "text": "참가 팀은 4개이고, 각 팀이 2회씩 제작했다. 참여자의 나이와 개인 연락처는 이 샘플에 포함하지 않았다."
+      },
+      {
+        "id": "p3",
+        "text": "자료의 엠바고는 2026년 10월 21일 오후 6시로 이미 지났다는 설정이다. 아동·청소년 취재 동의 절차는 별도로 확인해야 한다."
+      }
+    ],
+    "body": "이 자료는 샘플이다. 가상 솔빛라디오는 청소년이 제작한 프로그램 8회를 2026년 10월 23일부터 공개한다고 10월 22일 알렸다.\n\n참가 팀은 4개이고, 각 팀이 2회씩 제작했다. 참여자의 나이와 개인 연락처는 이 샘플에 포함하지 않았다.\n\n자료의 엠바고는 2026년 10월 21일 오후 6시로 이미 지났다는 설정이다. 아동·청소년 취재 동의 절차는 별도로 확인해야 한다.",
+    "photos": [],
+    "attachments": [
+      {
+        "name": "샘플_편성표.xlsx",
+        "kind": "xlsx",
+        "status": "sample_metadata",
+        "isSample": true
+      }
+    ],
+    "embargoUntil": "2026-10-21T18:00:00+09:00",
+    "restricted": false,
+    "contact": {
+      "name": "샘플 홍보담당",
+      "email": "press12@example.test"
+    },
+    "sampleNotice": "허구의 기관·자료로 만든 샘플입니다. 실제 메일 수집, 첨부 추출 또는 사진 사용 허가를 의미하지 않습니다."
+  },
+  {
+    "id": "sample-13",
+    "messageId": "<sample-13@example.test>",
+    "isSample": true,
+    "subject": "[샘플] [엠바고] 새결기술, 문화시설 안내 단말 12곳 시범 운영",
+    "sender": {
+      "organization": "가상 새결기술",
+      "email": "press13@example.test"
+    },
+    "accountId": "naver-sample",
+    "receivedAt": "2026-10-22T06:00:00+09:00",
+    "category": "기업",
+    "topic": "문화시설 디지털 안내",
+    "language": "ko",
+    "paragraphs": [
+      {
+        "id": "p1",
+        "text": "이 자료는 샘플이다. 가상 새결기술은 문화시설 12곳에서 디지털 안내 단말을 시범 운영한다고 알렸다."
+      },
+      {
+        "id": "p2",
+        "text": "시범 운영 기간은 2026년 11월부터 2027년 1월까지 3개월이다. 단말 도입 비용과 접근성 시험 결과는 공개하지 않았다."
+      },
+      {
+        "id": "p3",
+        "text": "자료에 지정된 엠바고 해제 시각은 2026년 10월 23일 오전 9시다. 해제 전에는 송고할 수 없다."
+      }
+    ],
+    "body": "이 자료는 샘플이다. 가상 새결기술은 문화시설 12곳에서 디지털 안내 단말을 시범 운영한다고 알렸다.\n\n시범 운영 기간은 2026년 11월부터 2027년 1월까지 3개월이다. 단말 도입 비용과 접근성 시험 결과는 공개하지 않았다.\n\n자료에 지정된 엠바고 해제 시각은 2026년 10월 23일 오전 9시다. 해제 전에는 송고할 수 없다.",
+    "photos": [
+      {
+        "id": "photo-sample-13",
+        "caption": "가상 안내 단말 사진",
+        "credit": "샘플 제공처",
+        "usageStatus": "unverified",
+        "source": "샘플 메일의 사진 목록",
+        "conditions": "샘플 메타데이터만 있음. 실제 이미지 파일과 사용 허가 없음.",
+        "isSample": true
+      }
+    ],
+    "attachments": [],
+    "embargoUntil": "2026-10-23T09:00:00+09:00",
+    "restricted": false,
+    "contact": {
+      "name": "샘플 홍보담당",
+      "email": "press13@example.test"
+    },
+    "sampleNotice": "허구의 기관·자료로 만든 샘플입니다. 실제 메일 수집, 첨부 추출 또는 사진 사용 허가를 의미하지 않습니다."
+  },
+  {
+    "id": "sample-14",
+    "messageId": "<sample-14@example.test>",
+    "isSample": true,
+    "subject": "[샘플] 가온유통, 다회용 전시 포장재 회수 실험 결과 공개",
+    "sender": {
+      "organization": "가상 가온유통",
+      "email": "press14@example.test"
+    },
+    "accountId": "daum-sample",
+    "receivedAt": "2026-10-22T06:05:00+09:00",
+    "category": "기업",
+    "topic": "문화행사 자원 순환",
+    "language": "ko",
+    "paragraphs": [
+      {
+        "id": "p1",
+        "text": "이 자료는 샘플이다. 가상 가온유통은 2026년 9월 진행한 전시 포장재 회수 실험에서 대여 상자 200개 중 170개를 회수했다고 10월 22일 알렸다."
+      },
+      {
+        "id": "p2",
+        "text": "회수율은 제공 수치로 계산하면 85%다. 회수하지 못한 30개의 사유와 세척·운송 비용은 공개하지 않았다."
+      },
+      {
+        "id": "p3",
+        "text": "한 달 실험 결과여서 장기 효과로 일반화할 수 없다. 수거 업체와 전시 주최자의 비용 부담을 추가로 확인해야 한다."
+      }
+    ],
+    "body": "이 자료는 샘플이다. 가상 가온유통은 2026년 9월 진행한 전시 포장재 회수 실험에서 대여 상자 200개 중 170개를 회수했다고 10월 22일 알렸다.\n\n회수율은 제공 수치로 계산하면 85%다. 회수하지 못한 30개의 사유와 세척·운송 비용은 공개하지 않았다.\n\n한 달 실험 결과여서 장기 효과로 일반화할 수 없다. 수거 업체와 전시 주최자의 비용 부담을 추가로 확인해야 한다.",
+    "photos": [],
+    "attachments": [
+      {
+        "name": "샘플_상자회수_집계.xlsx",
+        "kind": "xlsx",
+        "status": "sample_text",
+        "isSample": true,
+        "text": "대여 200개, 회수 170개, 미회수 30개"
+      }
+    ],
+    "embargoUntil": null,
+    "restricted": false,
+    "contact": {
+      "name": "샘플 홍보담당",
+      "email": "press14@example.test"
+    },
+    "sampleNotice": "허구의 기관·자료로 만든 샘플입니다. 실제 메일 수집, 첨부 추출 또는 사진 사용 허가를 의미하지 않습니다."
+  },
+  {
+    "id": "sample-15",
+    "messageId": "<sample-15@example.test>",
+    "isSample": true,
+    "subject": "[샘플] [선거·AI 초안 제한] 가상선거연구실, 모의 토론 일정 발표",
+    "sender": {
+      "organization": "가상 선거연구실",
+      "email": "press15@example.test"
+    },
+    "accountId": "naver-sample",
+    "receivedAt": "2026-10-22T06:10:00+09:00",
+    "category": "정책",
+    "topic": "선거 정보",
+    "language": "ko",
+    "paragraphs": [
+      {
+        "id": "p1",
+        "text": "이 자료는 샘플이다. 가상 선거연구실은 교육용 모의 토론을 2026년 11월 4일 한 차례 연다고 10월 22일 알렸다."
+      },
+      {
+        "id": "p2",
+        "text": "토론 주제는 지역 문화예산이며 참가자는 모두 가상의 역할로 구성된다. 실제 후보자·정당·여론조사 정보는 없다."
+      },
+      {
+        "id": "p3",
+        "text": "선거 관련 분류의 안전장치를 확인하기 위한 자료다. AI 초안 제한으로 표시하고 편집자 검토 없이 기사화하지 않는다."
+      }
+    ],
+    "body": "이 자료는 샘플이다. 가상 선거연구실은 교육용 모의 토론을 2026년 11월 4일 한 차례 연다고 10월 22일 알렸다.\n\n토론 주제는 지역 문화예산이며 참가자는 모두 가상의 역할로 구성된다. 실제 후보자·정당·여론조사 정보는 없다.\n\n선거 관련 분류의 안전장치를 확인하기 위한 자료다. AI 초안 제한으로 표시하고 편집자 검토 없이 기사화하지 않는다.",
+    "photos": [],
+    "attachments": [
+      {
+        "name": "샘플_모의토론_안내.hwp",
+        "kind": "hwp",
+        "status": "manual_review",
+        "isSample": true
+      }
+    ],
+    "embargoUntil": null,
+    "restricted": true,
+    "contact": {
+      "name": "샘플 홍보담당",
+      "email": "press15@example.test"
+    },
+    "sampleNotice": "허구의 기관·자료로 만든 샘플입니다. 실제 메일 수집, 첨부 추출 또는 사진 사용 허가를 의미하지 않습니다.",
+    "restrictionReason": "선거 관련 자료 · AI 초안 제한"
+  },
+  {
+    "id": "sample-16",
+    "messageId": "<sample-16@example.test>",
+    "isSample": true,
+    "subject": "[샘플] 푸른마을센터, 작은 도서관 야간 개방 2곳 시범 운영",
+    "sender": {
+      "organization": "가상 푸른마을센터",
+      "email": "press16@example.test"
+    },
+    "accountId": "daum-sample",
+    "receivedAt": "2026-10-22T06:15:00+09:00",
+    "category": "지역",
+    "topic": "지역 문화 접근성",
+    "language": "ko",
+    "paragraphs": [
+      {
+        "id": "p1",
+        "text": "이 자료는 샘플이다. 가상 푸른마을센터는 2026년 11월부터 작은 도서관 2곳의 운영 시간을 오후 9시까지 늘린다고 10월 22일 알렸다."
+      },
+      {
+        "id": "p2",
+        "text": "시범 운영은 8주간 진행한다. 도서관별 연장 시간과 추가 인건비는 자료에 공개하지 않았다."
+      },
+      {
+        "id": "p3",
+        "text": "이용자 수가 늘어나는지 판단할 기준 기간과 집계 방식은 추가 취재가 필요하다."
+      }
+    ],
+    "body": "이 자료는 샘플이다. 가상 푸른마을센터는 2026년 11월부터 작은 도서관 2곳의 운영 시간을 오후 9시까지 늘린다고 10월 22일 알렸다.\n\n시범 운영은 8주간 진행한다. 도서관별 연장 시간과 추가 인건비는 자료에 공개하지 않았다.\n\n이용자 수가 늘어나는지 판단할 기준 기간과 집계 방식은 추가 취재가 필요하다.",
+    "photos": [
+      {
+        "id": "photo-sample-16",
+        "caption": "가상 작은 도서관 내부",
+        "credit": "샘플 제공처",
+        "usageStatus": "unverified",
+        "source": "샘플 메일의 사진 목록",
+        "conditions": "샘플 메타데이터만 있음. 실제 이미지 파일과 사용 허가 없음.",
+        "isSample": true
+      }
+    ],
+    "attachments": [],
+    "embargoUntil": null,
+    "restricted": false,
+    "contact": {
+      "name": "샘플 홍보담당",
+      "email": "press16@example.test"
+    },
+    "sampleNotice": "허구의 기관·자료로 만든 샘플입니다. 실제 메일 수집, 첨부 추출 또는 사진 사용 허가를 의미하지 않습니다."
+  },
+  {
+    "id": "sample-17",
+    "messageId": "<sample-17@example.test>",
+    "isSample": true,
+    "subject": "[샘플] [재난·AI 초안 제한] 가상재난교육센터, 침수 대피 훈련 안내",
+    "sender": {
+      "organization": "가상 재난교육센터",
+      "email": "press17@example.test"
+    },
+    "accountId": "naver-sample",
+    "receivedAt": "2026-10-22T06:20:00+09:00",
+    "category": "지역",
+    "topic": "재난 안전",
+    "language": "ko",
+    "paragraphs": [
+      {
+        "id": "p1",
+        "text": "이 자료는 샘플이다. 가상 재난교육센터는 2026년 10월 28일 침수 상황을 가정한 대피 훈련을 실시한다고 10월 22일 알렸다."
+      },
+      {
+        "id": "p2",
+        "text": "훈련 장소는 가상의 교육장 1곳이며 예정 인원은 40명이다. 실제 사고나 피해 사실을 다루는 보도자료가 아니다."
+      },
+      {
+        "id": "p3",
+        "text": "재난·사고 자료의 AI 초안 제한을 확인하는 샘플이다. 안전 수칙과 수치는 담당 기관의 별도 확인이 필요하다."
+      }
+    ],
+    "body": "이 자료는 샘플이다. 가상 재난교육센터는 2026년 10월 28일 침수 상황을 가정한 대피 훈련을 실시한다고 10월 22일 알렸다.\n\n훈련 장소는 가상의 교육장 1곳이며 예정 인원은 40명이다. 실제 사고나 피해 사실을 다루는 보도자료가 아니다.\n\n재난·사고 자료의 AI 초안 제한을 확인하는 샘플이다. 안전 수칙과 수치는 담당 기관의 별도 확인이 필요하다.",
+    "photos": [],
+    "attachments": [
+      {
+        "name": "샘플_스캔_훈련안내.pdf",
+        "kind": "pdf",
+        "status": "manual_review",
+        "isSample": true
+      }
+    ],
+    "embargoUntil": null,
+    "restricted": true,
+    "contact": {
+      "name": "샘플 홍보담당",
+      "email": "press17@example.test"
+    },
+    "sampleNotice": "허구의 기관·자료로 만든 샘플입니다. 실제 메일 수집, 첨부 추출 또는 사진 사용 허가를 의미하지 않습니다.",
+    "restrictionReason": "재난·사고 관련 자료 · AI 초안 제한"
+  },
+  {
+    "id": "sample-18",
+    "messageId": "<sample-18@example.test>",
+    "isSample": true,
+    "subject": "[샘플] [제보·개인정보 가림] 문화시설 접근 안내가 다르다는 제보",
+    "sender": {
+      "organization": "가상 제보자 A",
+      "email": "press18@example.test"
+    },
+    "accountId": "daum-sample",
+    "receivedAt": "2026-10-22T06:25:00+09:00",
+    "category": "기타",
+    "topic": "문화시설 접근성",
+    "language": "ko",
+    "paragraphs": [
+      {
+        "id": "p1",
+        "text": "이 자료는 샘플 제보다. 가상 제보자 A는 가상의 문화시설 안내문과 현장 안내가 다르다고 주장했다. 이 주장은 검증되지 않았다."
+      },
+      {
+        "id": "p2",
+        "text": "제보는 안내문 2곳의 문구가 다르다는 내용이며 실제 문서 원본은 제공하지 않았다. 상대 기관의 답변과 현장 확인이 필요하다."
+      },
+      {
+        "id": "p3",
+        "text": "개인정보 가림 기능을 위한 표식은 [샘플 제보자 이름], [샘플 연락처], [샘플 주소]다. 실제 사람의 개인정보는 포함하지 않았다."
+      }
+    ],
+    "body": "이 자료는 샘플 제보다. 가상 제보자 A는 가상의 문화시설 안내문과 현장 안내가 다르다고 주장했다. 이 주장은 검증되지 않았다.\n\n제보는 안내문 2곳의 문구가 다르다는 내용이며 실제 문서 원본은 제공하지 않았다. 상대 기관의 답변과 현장 확인이 필요하다.\n\n개인정보 가림 기능을 위한 표식은 [샘플 제보자 이름], [샘플 연락처], [샘플 주소]다. 실제 사람의 개인정보는 포함하지 않았다.",
+    "photos": [],
+    "attachments": [
+      {
+        "name": "샘플_안내문_사진.jpg",
+        "kind": "image",
+        "status": "manual_review",
+        "isSample": true
+      }
+    ],
+    "embargoUntil": null,
+    "restricted": false,
+    "contact": {
+      "name": "[샘플 제보자 이름]",
+      "email": "tip@example.test"
+    },
+    "sampleNotice": "허구의 기관·자료로 만든 샘플입니다. 실제 메일 수집, 첨부 추출 또는 사진 사용 허가를 의미하지 않습니다.",
+    "privacySensitive": true,
+    "requiresVerification": true
+  },
+  {
+    "id": "sample-19",
+    "messageId": "<sample-19@example.test>",
+    "isSample": true,
+    "subject": "[샘플] Open Culture Lab shares a sample public-data timetable",
+    "sender": {
+      "organization": "Fictional Open Culture Lab",
+      "email": "press19@example.test"
+    },
+    "accountId": "naver-sample",
+    "receivedAt": "2026-10-22T06:30:00+09:00",
+    "category": "정책",
+    "topic": "문화 공공데이터",
+    "language": "en",
+    "paragraphs": [
+      {
+        "id": "p1",
+        "text": "This is fictional sample material. Fictional Open Culture Lab announced on 22 October 2026 that it would release a timetable dataset for 6 fictional cultural venues on 2 November 2026."
+      },
+      {
+        "id": "p2",
+        "text": "The sample dataset contains 120 timetable rows. The announcement does not state its update frequency, licensing terms, or accessibility-test results."
+      },
+      {
+        "id": "p3",
+        "text": "An editor should verify the source and the reuse licence before reporting or sharing the dataset. No actual download or live data connection is provided."
+      }
+    ],
+    "body": "This is fictional sample material. Fictional Open Culture Lab announced on 22 October 2026 that it would release a timetable dataset for 6 fictional cultural venues on 2 November 2026.\n\nThe sample dataset contains 120 timetable rows. The announcement does not state its update frequency, licensing terms, or accessibility-test results.\n\nAn editor should verify the source and the reuse licence before reporting or sharing the dataset. No actual download or live data connection is provided.",
+    "photos": [],
+    "attachments": [
+      {
+        "name": "sample_public_timetable.xlsx",
+        "kind": "xlsx",
+        "status": "sample_metadata",
+        "isSample": true
+      }
+    ],
+    "embargoUntil": null,
+    "restricted": false,
+    "contact": {
+      "name": "샘플 홍보담당",
+      "email": "press19@example.test"
+    },
+    "sampleNotice": "허구의 기관·자료로 만든 샘플입니다. 실제 메일 수집, 첨부 추출 또는 사진 사용 허가를 의미하지 않습니다."
+  },
+  {
+    "id": "sample-20",
+    "messageId": "<sample-20@example.test>",
+    "isSample": true,
+    "subject": "[샘플] River Gallery announces a sample tactile exhibition",
+    "sender": {
+      "organization": "Fictional River Gallery",
+      "email": "press20@example.test"
+    },
+    "accountId": "daum-sample",
+    "receivedAt": "2026-10-22T06:35:00+09:00",
+    "category": "전시",
+    "topic": "접근성 전시",
+    "language": "en",
+    "paragraphs": [
+      {
+        "id": "p1",
+        "text": "This is fictional sample material. Fictional River Gallery announced on 22 October 2026 that a tactile exhibition would run from 10 to 24 November 2026."
+      },
+      {
+        "id": "p2",
+        "text": "The exhibition plan lists 10 tactile objects and 2 guided sessions. The release does not provide visitor-capacity figures or the cost of producing the objects."
+      },
+      {
+        "id": "p3",
+        "text": "Photo captions are listed as sample metadata only. An editor must check image credits, permission, and translation before publication."
+      }
+    ],
+    "body": "This is fictional sample material. Fictional River Gallery announced on 22 October 2026 that a tactile exhibition would run from 10 to 24 November 2026.\n\nThe exhibition plan lists 10 tactile objects and 2 guided sessions. The release does not provide visitor-capacity figures or the cost of producing the objects.\n\nPhoto captions are listed as sample metadata only. An editor must check image credits, permission, and translation before publication.",
+    "photos": [
+      {
+        "id": "photo-sample-20",
+        "caption": "가상 촉각 전시 안내",
+        "credit": "Fictional River Gallery",
+        "usageStatus": "unverified",
+        "source": "샘플 메일의 사진 목록",
+        "conditions": "샘플 메타데이터만 있음. 실제 이미지 파일과 사용 허가 없음.",
+        "isSample": true
+      }
+    ],
+    "attachments": [],
+    "embargoUntil": null,
+    "restricted": false,
+    "contact": {
+      "name": "샘플 홍보담당",
+      "email": "press20@example.test"
+    },
+    "sampleNotice": "허구의 기관·자료로 만든 샘플입니다. 실제 메일 수집, 첨부 추출 또는 사진 사용 허가를 의미하지 않습니다."
+  }
+]

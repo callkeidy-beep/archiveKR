@@ -1,15 +1,15 @@
 {
-  "name": "archivekr",
+  "name": "content-maker-engine",
   "private": true,
+  "version": "0.1.0",
   "type": "module",
-  "engines": {
-    "node": ">=24"
-  },
   "scripts": {
-    "build": "npm --prefix modules/opportunity-radar run build",
-    "validate": "npm --prefix modules/opportunity-radar run validate && node --test modules/editorial-desk/*.test.mjs modules/regional-news/*.test.mjs modules/automation/*.test.mjs tests/*.test.mjs",
-    "dev": "node scripts/start.mjs",
     "setup": "bash scripts/setup.sh",
-    "build:preview": "node scripts/build-preview.mjs"
+    "dev": ".venv/bin/python -m app.run",
+    "test": ".venv/bin/python -m unittest discover -s tests -v",
+    "validate": "npm test",
+    "build": ".venv/bin/python scripts/build_preview.py",
+    "build:preview": "npm run build",
+    "docker:prepare": "bash scripts/prepare_docker.sh"
   }
 }
