@@ -144,7 +144,7 @@ def rank(sources, settings, reference_time=REFERENCE_TIME):
             'duplication': min(5, duplicate_count),
         }
         reasons = {
-            'timeliness': f'샘플 기준시각 대비 수신 후 {int(age)}일. 실제 뉴스 가치 판정은 아닙니다.',
+            'timeliness': f'추천 기준시각 대비 수신 후 {int(age)}일. 실제 뉴스 가치 판정은 아닙니다.',
             'impact': '본문의 숫자 표현 수를 사용한 초기 대리 지표입니다. 영향력의 실제 검증은 필요합니다.',
             'rarity': f'동일 내용 중복 수신 {duplicate_count+1}건. 독점 취재 여부를 확인한 값은 아닙니다.',
             'fit': '설정의 선호 분야 일치 여부를 사용합니다.',
@@ -177,7 +177,7 @@ def rank(sources, settings, reference_time=REFERENCE_TIME):
     return selected, groups
 
 
-def make_plans(sources, candidates):
+def make_plans(sources, candidates, reference_time=REFERENCE_TIME):
     by_id = {s['id']: s for s in sources}
     first = by_id[candidates[0]['sourceId']] if candidates else None
     single = {'id': 'plan-single', 'type': 'single', 'title': '단일 보도자료 기사', 'reason': '선정 자료 한 건의 원문 사실을 정리하는 스트레이트 기획입니다.', 'sourceIds': [first['id']] if first else [], 'evidence': evidence(first) if first else []}
@@ -191,7 +191,7 @@ def make_plans(sources, candidates):
     for plan in [single,bundle,trend,questions]:
         linked = [by_id[sid] for sid in plan['sourceIds']]
         plan['restricted'] = any(source['restricted'] for source in linked)
-        plan['sendBlocked'] = any(source['embargoAt'] and date(source['embargoAt']) > REFERENCE_TIME for source in linked)
+        plan['sendBlocked'] = any(source['embargoAt'] and date(source['embargoAt']) > reference_time for source in linked)
         plan['draftingEnabled'] = False
     return [single,bundle,trend,questions]
 
@@ -208,3 +208,40 @@ def bootstrap(evaluations=None):
     if len(candidates)<desired: warnings.append('자료가 부족해 설정한 후보 수를 채우지 않았습니다.')
     if sum(c['exploratory'] for c in candidates)<desired_exploration: warnings.append('선호 분야 밖 자료가 부족해 탐색 후보 수를 채우지 않았습니다.')
     return {'name':'콘텐츠메이커 엔진','mode':'sample','sample':True,'referenceTime':REFERENCE_TIME.isoformat(),'sampleReferenceTime':REFERENCE_TIME.isoformat(),'notice':'샘플 자료 20건으로 동작합니다. 실제 메일 수집·AI 작성·송고는 연결하지 않았습니다.','sources':sources,'candidates':candidates,'plans':make_plans(sources,candidates),'evaluations':evaluations or [],'settings':settings,'overview':{'received':len(sources),'uniqueSources':len(groups),'duplicateCount':sum(len(g[0].get('duplicateIds',[])) for g in groups),'supersededCount':sum(max(0,len(g[0].get('versionIds',[]))-1) for g in groups),'deferredCount':sum(date(source['receivedAt'])>REFERENCE_TIME for source in sources),'candidates':len(candidates),'exploratory':sum(c['exploratory'] for c in candidates)},'connections':[{'id':'naver','name':'네이버 메일 IMAP','status':'미연결','detail':'앱 비밀번호·IMAP 설정·실제 SSL 접속 시험이 필요합니다.'},{'id':'daum','name':'다음 메일 IMAP','status':'미연결','detail':'앱 비밀번호 요건과 공식 도움말 확인 후 실제 접속 시험이 필요합니다.'},{'id':'ai','name':'AI API','status':'미연결','detail':'1단계는 규칙 기반입니다. AI API를 호출하지 않습니다.'},{'id':'publishing','name':'외부 송고·SNS','status':'미연결','detail':'이번 단계에는 게시 기능이 없습니다.'}], 'warnings':warnings, 'capabilities':{'imap':False,'ai':False,'publication':False,'learning':False,'scheduledBackup':False,'evaluations':True}}
+
+
+def build_workspace(sources, evaluations=None):
+    """Private real-mail workspace; never called by the public sample exporter."""
+    import copy
+    now = datetime.now(timezone.utc)
+    settings = load_settings()
+    sources = copy.deepcopy(sources)
+    for item in sources:
+        item['isSample'] = False
+        item.setdefault('accountId', 'daum-real')
+        item.setdefault('photos', [])
+        item.setdefault('attachments', [])
+        item.setdefault('paragraphs', [{'id':'p1','text':item.get('body','')}])
+        item.setdefault('embargoAt', None)
+        item['category'], item['classification'] = classification(item['title'], item['body'])
+        item['restricted'] = bool(item.get('restricted') or re.search('재난|사고|범죄|선거|사망|살인', item['title']))
+        item.setdefault('sender', {'organization':'발신 기관 미확인','email':''})
+    usable_sources = [item for item in sources if item.get('collectionStatus') != 'manual_review']
+    candidates, groups = rank(usable_sources, settings, reference_time=now)
+    plans = make_plans(usable_sources, candidates, reference_time=now)
+    for plan in plans:
+        if plan['type'] == 'trend':
+            plan['reason'] = '현재 수집 자료의 분야별 건수입니다. 이전 기간 비교가 없어 증가·감소 추세는 판정하지 않습니다.'
+    warnings = []
+    if len(usable_sources) < len(sources): warnings.append('본문을 가져오지 못한 수동 확인 자료는 기사 후보와 기획 근거에서 제외했습니다.')
+    if len(candidates) < 12: warnings.append('수집 자료가 부족하거나 중복되어 후보가 12건보다 적습니다.')
+    if sum(c['exploratory'] for c in candidates) < 2: warnings.append('선호 분야 밖 자료가 부족해 탐색 후보 2건을 채우지 못했습니다.')
+    return {'name':'콘텐츠메이커 엔진','mode':'real','sample':False,'referenceTime':now.isoformat(),
+            'notice':'실제 다음메일 자료입니다. 수동 가져오기·규칙 분류·후보 추천이며 AI API나 외부 송고는 실행하지 않습니다.',
+            'sources':sources,'candidates':candidates,'plans':plans,'evaluations':evaluations or [],'settings':settings,
+            'overview':{'received':len(sources),'uniqueSources':len(groups),'duplicateCount':sum(len(g)-1 for g in groups),
+                        'supersededCount':0,'candidates':len(candidates),'exploratory':sum(c['exploratory'] for c in candidates)},
+            'connections':[{'id':'daum','name':'다음 메일 IMAP','status':'수집 자료 있음' if sources else '가져오기 필요','detail':'보관 자료이며 현재 접속 상태는 별도 시험으로 확인합니다.'},
+                           {'id':'ai','name':'AI API','status':'미연결','detail':'키워드 기반 분류·규칙 점수만 사용합니다.'},
+                           {'id':'publishing','name':'외부 송고·SNS','status':'미연결','detail':'외부 송고는 실행하지 않습니다.'}],
+            'warnings':warnings,'capabilities':{'imap':True,'ai':False,'publication':False,'learning':False,'scheduledBackup':False,'evaluations':True}}
