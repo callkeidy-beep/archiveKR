@@ -65,7 +65,7 @@ async function openRealWorkspace(collect=false){
   const next=await request('mail/workspace');
   if(!mailAuthenticated||generation!==workspaceGeneration)return;
   if(next.mode!=='real'||next.sample!==false)throw new Error('실제 자료 응답을 확인하지 못했습니다.');
-  if(result){const notes=[result.notice,...(Array.isArray(result.warnings)?result.warnings:[])].filter(Boolean);if(result.details?.manualReview)notes.push(`대용량 메일 ${result.details.manualReview}건은 수동 확인이 필요합니다.`);if(result.details?.pruned)notes.push(`저장 한도에 따라 오래된 자료 ${result.details.pruned}건을 보관에서 제외했습니다.`);next.warnings=[...notes,...(next.warnings||[])];}workspaceGeneration++;data=next;drafts.clear();paintWorkspace();showView('today');toast(collect?`실제 메일을 가져왔습니다. 수집함 ${data.sources.length}건을 확인하세요.`:'저장된 실제 메일 작업대를 열었습니다.');
+  if(result){const notes=[result.notice,...(Array.isArray(result.warnings)?result.warnings:[])].filter(Boolean);if(result.details?.advertisementsSkipped)notes.push(`제목 제외 규칙으로 메일 ${result.details.advertisementsSkipped}건을 제외했습니다.`);if(result.details?.manualReview)notes.push(`대용량 메일 ${result.details.manualReview}건은 수동 확인이 필요합니다.`);if(result.details?.pruned)notes.push(`저장 한도에 따라 오래된 자료 ${result.details.pruned}건을 보관에서 제외했습니다.`);next.warnings=[...notes,...(next.warnings||[])];}workspaceGeneration++;data=next;drafts.clear();paintWorkspace();showView('today');toast(collect?`실제 메일을 가져왔습니다. 수집함 ${data.sources.length}건을 확인하세요.`:'저장된 실제 메일 작업대를 열었습니다.');
  }catch(error){if(error.status===401){mailAuthenticated=false;leaveRealWorkspace();}mailError(error.message,true);toast(error.message);}
  finally{workspaceBusy=false;renderMailConnection();}
 }

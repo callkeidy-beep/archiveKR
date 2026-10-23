@@ -54,6 +54,20 @@ def archive_path(config):
     return mail._private_directory() / ('messages-' + account_scope(config) + '.enc')
 
 
+EXCLUDED_SUBJECT_MARKERS = ('(광고)', '[전자결재', '대용량 메일')
+
+
+def is_excluded_subject(subject):
+    return any(marker in str(subject) for marker in EXCLUDED_SUBJECT_MARKERS)
+
+
+def without_excluded_subjects(archive):
+    archive['sources'] = [s for s in archive['sources'] if not is_excluded_subject(s.get('title', ''))]
+    retained = {'candidate-' + s['id'] for s in archive['sources']}
+    archive['evaluations'] = [e for e in archive['evaluations'] if e['candidateId'] in retained]
+    return archive
+
+
 def load_archive(config):
     path=archive_path(config)
     if not path.exists(): return {'version':1,'folders':{},'sources':[],'evaluations':[],'lastCollectedAt':None}
@@ -61,7 +75,7 @@ def load_archive(config):
         if path.is_symlink() or path.stat().st_size > MAX_ARCHIVE*2: raise ValueError()
         result=json.loads(mail._cipher().decrypt(path.read_bytes()))
         if result.get('version') != 1: raise ValueError()
-        return result
+        return without_excluded_subjects(result)
     except (OSError,ValueError,InvalidToken):
         raise CollectionError() from None
 
@@ -120,8 +134,8 @@ def collect_messages(config, archive, *, client_factory=None, timeout=60):
     this transaction, so no cursor advances past a failed message. Oversized
     messages become explicit manual-review records rather than fetched bodies.
     """
-    archive=copy.deepcopy(archive); scope=account_scope(config); client=None
-    imported=0; oversized=0; deadline=time.monotonic()+timeout
+    archive=without_excluded_subjects(copy.deepcopy(archive)); scope=account_scope(config); client=None
+    imported=0; oversized=0; advertisements=0; deadline=time.monotonic()+timeout
     def budget():
         remaining=deadline-time.monotonic()
         if remaining<=0: raise CollectionError()
@@ -157,6 +171,13 @@ def collect_messages(config, archive, *, client_factory=None, timeout=60):
             else: batch=list(reversed(uids[-20:]))
             handled=[]
             for uid in batch:
+                # Read only the Subject header before fetching any body/attachment.
+                budget();status,header_data=client.uid('FETCH',str(uid),'(BODY.PEEK[HEADER.FIELDS (SUBJECT)]<0.65537>)')
+                header_chunks=[x[1] for x in header_data or [] if isinstance(x,tuple) and len(x)>1 and isinstance(x[1],bytes)]
+                if not _success(status) or not header_chunks or sum(map(len,header_chunks))>65536: raise CollectionError()
+                header=BytesParser(policy=policy.default).parsebytes(b''.join(header_chunks),headersonly=True)
+                if is_excluded_subject(header.get('Subject','')):
+                    advertisements+=1;handled.append(uid);continue
                 budget();status,data=client.uid('FETCH',str(uid),'(RFC822.SIZE INTERNALDATE)')
                 size_match=re.search(rb'RFC822.SIZE\s+(\d+)',b' '.join(x for x in data or [] if isinstance(x,bytes)),re.I)
                 if not _success(status) or not size_match: raise CollectionError()
@@ -182,6 +203,8 @@ def collect_messages(config, archive, *, client_factory=None, timeout=60):
                     source['dateSource']='IMAP INTERNALDATE'
                 else:
                     source['dateSource']='메일 Date 헤더 또는 수집 시각 (실제 배달 시각 미확인)'
+                if is_excluded_subject(source['title']):
+                    advertisements+=1;handled.append(uid);continue
                 if source['id'] not in {s['id'] for s in archive['sources']}:
                     archive['sources'].append(source); imported+=1
                 handled.append(uid)
@@ -195,7 +218,7 @@ def collect_messages(config, archive, *, client_factory=None, timeout=60):
         archive['evaluations']=[e for e in archive['evaluations'] if e['candidateId'] in retained]
         archive['collectionRevision']=secrets.token_hex(24)
         archive['lastCollectedAt']=datetime.now(timezone.utc).isoformat()
-        archive['lastCollection']={'imported':imported,'manualReview':oversized,'pruned':pruned}
+        archive['lastCollection']={'imported':imported,'manualReview':oversized,'pruned':pruned,'advertisementsSkipped':advertisements}
         return archive
     except Exception:
         raise CollectionError() from None
@@ -235,7 +258,7 @@ async def collect(request: Request):
                 raise HTTPException(409,'다른 프로세스에서 수집 자료가 갱신됐습니다. 다시 가져오세요.')
             updated['evaluations']=current['evaluations']
             save_archive(config,updated)
-        return {'ok':True,'collected':updated['lastCollection']['imported'],'collectedCount':updated['lastCollection']['imported'],'totalCount':len(updated['sources']),'lastCollectedAt':updated['lastCollectedAt'],'details':updated['lastCollection'],'notice':'읽음 상태를 바꾸지 않고 가져왔습니다. 처음에는 최신20건, 다음 실행부터 새 메일과 이전 메일을 나눠 가져옵니다. 첨부 추출·자동 폴링·AI·송고는 실행하지 않습니다.'}
+        return {'ok':True,'collected':updated['lastCollection']['imported'],'collectedCount':updated['lastCollection']['imported'],'totalCount':len(updated['sources']),'lastCollectedAt':updated['lastCollectedAt'],'details':updated['lastCollection'],'notice':'읽음 상태를 바꾸지 않고 가져왔습니다. 제목에 (광고), [전자결재, 대용량 메일 문구가 있으면 제외합니다. 처음에는 최신20건, 다음 실행부터 새 메일과 이전 메일을 나눠 가져옵니다. 첨부 추출·자동 폴링·AI·송고는 실행하지 않습니다.'}
     except (CollectionError,mail.MailConfigurationError,OSError):
         raise HTTPException(502,'메일을 가져오거나 암호화 저장하지 못했습니다. 이번 작업의 수집 위치는 변경하지 않았습니다. 계정·폴더·네트워크와 저장 공간을 확인한 뒤 다시 시도하세요.') from None
     finally: _collect_lock.release()

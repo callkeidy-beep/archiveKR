@@ -28,6 +28,11 @@ class FakeIMAP:
         uid=int(args[0]);raw=self.mails[uid]
         if uid==self.fail_uid:return 'NO',[]
         if args[1]=='(RFC822.SIZE INTERNALDATE)':return 'OK',[f'1 (RFC822.SIZE {len(raw)})'.encode()]
+        if 'HEADER.FIELDS' in args[1]:
+            from email.parser import BytesParser
+            from email import policy
+            header=EmailMessage();header['Subject']=str(BytesParser(policy=policy.default).parsebytes(raw,headersonly=True).get('Subject',''))
+            raw=header.as_bytes()
         return 'OK',[(b'BODY[]',raw),b')']
     def logout(self):self.calls.append(('logout',));return 'BYE',[]
 
@@ -50,7 +55,7 @@ class CollectionTests(unittest.TestCase):
         state=self.run_collect(state);self.assertEqual(len(state['sources']),41)
         self.assertTrue(all(c[2] for c in self.fake.calls if c[0]=='select'))
         fetch=[c for c in self.fake.calls if c[0]=='FETCH']
-        self.assertTrue(all(c[2] in ('(RFC822.SIZE INTERNALDATE)','(BODY.PEEK[]<0.1048577>)') for c in fetch))
+        self.assertTrue(all(c[2] in ('(RFC822.SIZE INTERNALDATE)','(BODY.PEEK[]<0.1048577>)','(BODY.PEEK[HEADER.FIELDS (SUBJECT)]<0.65537>)') for c in fetch))
         self.assertFalse(any(c[0] in ('STORE','EXPUNGE','MOVE') for c in self.fake.calls))
     def test_failure_does_not_mutate_cursors_or_archive(self):
         state=self.run_collect();before=json.dumps(state,sort_keys=True)
@@ -66,7 +71,8 @@ class CollectionTests(unittest.TestCase):
         self.fake.mails={1:b'x'*(collect.MAX_MAIL+1)};state=self.run_collect()
         self.assertEqual(state['lastCollection']['manualReview'],1)
         self.assertFalse(any(c[0]=='FETCH' and c[2]=='(BODY.PEEK[]<0.1048577>)' for c in self.fake.calls))
-        self.assertEqual(state['sources'][0]['collectionStatus'],'manual_review')
+        self.assertEqual(state['sources'],[])
+        self.assertEqual(state['folders']['INBOX']['highUid'],1)
     def test_archive_encrypted_scoped_and_raw_omitted(self):
         state=self.run_collect();collect.save_archive(self.config,state)
         encrypted=collect.archive_path(self.config).read_bytes()
@@ -131,3 +137,34 @@ class CollectionTests(unittest.TestCase):
                 response=client.post('/api/mail/collect',json={},headers=headers)
             self.assertEqual(response.status_code,409,response.text)
             self.assertEqual(collect.load_archive(self.config)['collectionRevision'],'other-process')
+
+    def test_advertisement_headers_skip_body_and_advance_cursor(self):
+        self.fake.mails={1:message('(광고) 할인 안내'),2:message('보도자료'),3:message('안내 (광고) 행사')}
+        state=self.run_collect()
+        self.assertEqual(len(state['sources']),1)
+        self.assertEqual(state['sources'][0]['title'],'보도자료')
+        self.assertEqual(state['lastCollection']['advertisementsSkipped'],2)
+        self.assertEqual(state['folders']['INBOX']['highUid'],3)
+        for call in self.fake.calls:
+            if call[0]=='FETCH' and call[1] in ('1','3'):
+                self.assertIn('HEADER.FIELDS',call[2])
+        self.assertEqual(self.run_collect(state)['lastCollection']['imported'],0)
+
+    def test_existing_advertisements_hidden_with_their_evaluations(self):
+        state=self.run_collect()
+        state['sources'][0]['title']='(광고) 이전 자료'
+        excluded=state['sources'][0]['id']
+        state['evaluations']=[{'candidateId':'candidate-'+excluded}]
+        collect.save_archive(self.config,state)
+        loaded=collect.load_archive(self.config)
+        self.assertNotIn(excluded,{s['id'] for s in loaded['sources']})
+        self.assertEqual(loaded['evaluations'],[])
+
+    def test_approval_and_large_mail_subjects_skip_body(self):
+        self.fake.mails={1:message('[전자결재 문서 도착'),2:message('알림 대용량 메일 도착'),3:message('일반 보도자료')}
+        state=self.run_collect()
+        self.assertEqual([s['title'] for s in state['sources']],['일반 보도자료'])
+        self.assertEqual(state['lastCollection']['advertisementsSkipped'],2)
+        for call in self.fake.calls:
+            if call[0]=='FETCH' and call[1] in ('1','2'):
+                self.assertIn('HEADER.FIELDS',call[2])
