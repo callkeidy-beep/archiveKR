@@ -23,7 +23,7 @@ def load_settings():
     for name in ('settings.yaml', 'editorial.yaml', 'scoring.yaml', 'categories.yaml', 'app.yaml'):
         p = ROOT / 'config' / name
         if p.exists():
-            content = yaml.safe_load(p.read_text()) or {}
+            content = yaml.safe_load(p.read_text(encoding='utf-8')) or {}
             if isinstance(content, dict): settings.update(content)
     settings.setdefault('media', settings.get('publication', {}).get('default_medium', '무비스트'))
     settings.setdefault('preferredCategories', settings.get('recommendations', {}).get('preferred_categories', ['영화', '공연', '전시', '방송']))
@@ -40,7 +40,7 @@ def date(value):
 
 def classification(title, body, expected=None):
     path = ROOT / 'config' / 'classification.yaml'
-    taxonomy = yaml.safe_load(path.read_text()) if path.exists() else {}
+    taxonomy = yaml.safe_load(path.read_text(encoding='utf-8')) if path.exists() else {}
     keywords = (taxonomy or {}).get('classification', {}).get('keywords', {})
     if not keywords:
         return expected or '기타', {'method':'sample_label','reason':'샘플 자료에 지정된 분류입니다. 실제 메일 자동 분류 결과가 아닙니다.'}
@@ -58,7 +58,7 @@ def classification(title, body, expected=None):
     return category, {'method':'rules','reason':f'설정 키워드 일치: {", ".join(matched.get(category, [])) or "없음 → 기타"}. 제목 가중치3·본문1의 규칙 분류입니다.','matchedKeywords':matched.get(category, []),'scores':scores}
 
 def load_sources():
-    payload = json.loads((ROOT / 'fixtures' / 'mail.json').read_text())
+    payload = json.loads((ROOT / 'fixtures' / 'mail.json').read_text(encoding='utf-8'))
     if isinstance(payload, dict): payload = payload.get('sources', payload.get('messages', payload.get('mails', [])))
     sources = []
     for index, raw in enumerate(payload):

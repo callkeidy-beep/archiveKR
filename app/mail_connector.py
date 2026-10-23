@@ -79,7 +79,7 @@ def quote_mailbox(name: str) -> str:
 
 
 def load_provider(provider: str, config_path: str | Path | None = None) -> dict:
-    configuration = yaml.safe_load(Path(config_path or DEFAULT_CONFIG).read_text()) or {}
+    configuration = yaml.safe_load(Path(config_path or DEFAULT_CONFIG).read_text(encoding='utf-8')) or {}
     providers = configuration.get('providers', configuration.get('mail', {}).get('providers', {}))
     if isinstance(providers, list):
         settings = next((value for value in providers if value.get('id') == provider), None)
