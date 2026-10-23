@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / 'site-dist'
 if OUT.exists(): shutil.rmtree(OUT)
 OUT.mkdir()
-for name in ('index.html','app.js','style.css'):
+for name in ('index.html','app.js','style.css','favicon.svg','favicon.ico','apple-touch-icon.png'):
     shutil.copyfile(ROOT/'web'/name,OUT/name)
 subprocess.run([sys.executable,'-m','app.export_sample',str(OUT/'sample.json')],cwd=ROOT,check=True)
 version = hashlib.sha256(b''.join((OUT/name).read_bytes() for name in ('index.html','app.js','style.css','sample.json'))).hexdigest()[:16]
