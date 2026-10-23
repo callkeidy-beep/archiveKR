@@ -25,7 +25,7 @@ def load_settings():
         if p.exists():
             content = yaml.safe_load(p.read_text(encoding='utf-8')) or {}
             if isinstance(content, dict): settings.update(content)
-    settings.setdefault('media', settings.get('publication', {}).get('default_medium', '무비스트'))
+    settings.setdefault('media', settings.get('publication', {}).get('default_medium', 'KKD'))
     settings.setdefault('preferredCategories', settings.get('recommendations', {}).get('preferred_categories', ['영화', '공연', '전시', '방송']))
     settings.setdefault('weights', {k: v[1] for k, v in DIMENSIONS.items()})
     return settings

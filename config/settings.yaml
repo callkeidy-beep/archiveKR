@@ -4,8 +4,8 @@ project:
   phase: 1
   mode: sample
 publication:
-  default_medium: 무비스트
-  media: [무비스트]
+  default_medium: KKD
+  media: [KKD]
   reporter: 편집자
   language: ko
   ai_disclosure: 'AI 활용: 시스템 보조 자료이며 편집자의 사실 확인이 필요합니다.'
